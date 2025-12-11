@@ -1,9 +1,9 @@
 const cacheName = "YDreams-Mattel_PollyRA-0.0.1";
 const contentToCache = [
-    "Build/tmnt build.loader.js",
-    "Build/tmnt build.framework.js",
-    "Build/tmnt build.data",
-    "Build/tmnt build.wasm",
+    "Build/TMNT_WEB.loader.js",
+    "Build/TMNT_WEB.framework.js",
+    "Build/TMNT_WEB.data",
+    "Build/TMNT_WEB.wasm",
     "TemplateData/style.css"
 
 ];
