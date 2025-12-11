@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: e435c2e0f9c5d0c4b84c6710f613e23f
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/Common/Prefabs/ARCamera.prefab
+  uploadId: 730120

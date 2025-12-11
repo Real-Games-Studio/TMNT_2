@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: f49e14a075e9e496caccff4460fe9ccf
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Shaders/UnlitMultiply.shader
+  uploadId: 730120

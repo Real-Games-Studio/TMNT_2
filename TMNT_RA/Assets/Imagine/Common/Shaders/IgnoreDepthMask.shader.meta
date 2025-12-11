@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: deb204cbb3cea4131af0da48fac9e9bf
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/Common/Shaders/IgnoreDepthMask.shader
+  uploadId: 730120

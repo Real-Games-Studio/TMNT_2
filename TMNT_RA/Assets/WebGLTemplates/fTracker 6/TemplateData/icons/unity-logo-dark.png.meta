@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 145320078d9b2426d92daf60737f1af7
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/WebGLTemplates/fTracker 6/TemplateData/icons/unity-logo-dark.png
+  uploadId: 730120

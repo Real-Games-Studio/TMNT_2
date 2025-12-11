@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: f74b1195219c64184a67f2245e8a95f6
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/WebGLTemplates/fTracker/mediapipe/face_landmarker.task
+  uploadId: 730120

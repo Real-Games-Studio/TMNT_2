@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c199abca162d54aefa19893703dae7f0
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/WebGLTemplates/fTracker 6/mediapipe/tasks-vision@0.10.3.js
+  uploadId: 730120

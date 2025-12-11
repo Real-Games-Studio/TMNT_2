@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 914a74b1c61564e838195a5a24acedde
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Demos/Materials/cap2_mat.mat
+  uploadId: 730120

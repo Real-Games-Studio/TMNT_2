@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 4221fa899f2174731be0da14d4c22f2a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Scripts/Editor/FaceSettingsPropertyDrawer.cs
+  uploadId: 730120

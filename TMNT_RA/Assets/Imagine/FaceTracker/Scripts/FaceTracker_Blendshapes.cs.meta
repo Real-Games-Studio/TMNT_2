@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 959d1353f903b42a49a1545a6163b14c
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Scripts/FaceTracker_Blendshapes.cs
+  uploadId: 730120

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 2abd4c4b5364241a1bb68fb2d3d26c8c
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/Common/Scripts/Editor/PlayModeNotificationWindow.cs
+  uploadId: 730120

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fe35507ee26d745679df2995ba94584a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/Common/Materials/VideoBG.mat
+  uploadId: 730120

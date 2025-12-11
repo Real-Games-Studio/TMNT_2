@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 6b239881b8e1740cb9271b170093f50a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Scripts/FaceTrackerGlobalSettings.cs
+  uploadId: 730120

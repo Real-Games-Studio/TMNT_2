@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 146950359eb5643e3b89ca30aaeb166d
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/WebGLTemplates/fTracker/arcamera.js
+  uploadId: 730120

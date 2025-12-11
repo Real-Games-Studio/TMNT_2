@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7c21cb89027f3468080ee0d86f00234b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Demos/Materials/facedeformation-nose.mat
+  uploadId: 730120

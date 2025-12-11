@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0da69a69ff5f940d8bdbb706fbfa6ff5
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Demos/Scenes/Demo-TeethWhitener.unity
+  uploadId: 730120

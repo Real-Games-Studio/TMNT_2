@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 7c824a1a99b55416aa9204dbbd2f096c
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Shaders/FaceDeformation.shader
+  uploadId: 730120

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e173fdc33f30d4f74a370188125898cf
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Demos/Materials/Bearcat1.mat
+  uploadId: 730120

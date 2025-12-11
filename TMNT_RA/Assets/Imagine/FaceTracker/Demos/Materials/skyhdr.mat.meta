@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 31e5eb7bec3334377b29b292011c33e3
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Demos/Materials/skyhdr.mat
+  uploadId: 730120

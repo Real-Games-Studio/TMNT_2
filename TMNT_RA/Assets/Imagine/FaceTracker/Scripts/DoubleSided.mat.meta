@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e70fa5bc10aae498e846202ca6189082
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Scripts/DoubleSided.mat
+  uploadId: 730120

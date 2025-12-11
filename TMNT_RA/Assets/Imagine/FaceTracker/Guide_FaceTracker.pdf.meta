@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: e2e733ee8bb1746e08075f732242301b
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Guide_FaceTracker.pdf
+  uploadId: 730120

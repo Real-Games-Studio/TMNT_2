@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 40d71c44c2895413184f0d1b9ce87ae3
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Prefabs/FaceTracker.prefab
+  uploadId: 730120

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 1c24b288f67be45fc9949a4536951d73
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/WebGLTemplates/fTracker 6/TemplateData/progress-bar-empty-dark.png
+  uploadId: 730120

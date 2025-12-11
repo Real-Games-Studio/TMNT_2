@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: e0a5be26f89794dfdb035b72071d7faf
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/FaceTracker/Demos/Scenes/Demo-FaceEvents.unity
+  uploadId: 730120

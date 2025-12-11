@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8c721564d7c6144a3bd146a547210819
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 279828
+  packageName: Imagine WebAR - Face Tracker
+  packageVersion: 1.1.1
+  assetPath: Assets/Imagine/Common/Scripts/ClipboardManager.cs
+  uploadId: 730120
