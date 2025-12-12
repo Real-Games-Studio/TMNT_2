@@ -490,8 +490,16 @@ public class ScreenVestiario : CanvasScreen
         // Show flash effect
         StartCoroutine(ShowFlashEffect());
 
-        // Play capture audio (SEM MOSTRAR A FOTO - ela vai direto pro upload)
+        // Play capture audio
         PlayCaptureAudio();
+
+        // Mostra o freeze frame da câmera (sem UI) no ScreenVestiario
+        if (freezeFrameImage != null && cameraOnlyTexture != null)
+        {
+            freezeFrameImage.texture = cameraOnlyTexture;
+            freezeFrameImage.gameObject.SetActive(true);
+            Debug.Log("[ScreenVestiario] Mostrando freeze frame da câmera (sem UI)");
+        }
 
         if (countdownGroup)
         {
@@ -501,7 +509,7 @@ public class ScreenVestiario : CanvasScreen
             countdownGroup.gameObject.SetActive(false);
         }
 
-        // Aguarda 1 segundo e vai para a próxima tela
+        // Aguarda 1 segundo mostrando o freeze frame e vai para a próxima tela
         yield return new WaitForSeconds(1f);
         CallNextScreen();
     }
