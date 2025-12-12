@@ -1759,7 +1759,8 @@ MonoBehaviour:
   flashEffect: {fileID: 1548260219}
   flashDuration: 0.5
   pictureDataController: {fileID: 1094146009}
-  cameraFeedSource: {fileID: 0}
+  cameraFeedSource: {fileID: 203681532}
+  cameraRegion: {fileID: 0}
 --- !u!225 &728473433
 CanvasGroup:
   m_ObjectHideFlags: 0
