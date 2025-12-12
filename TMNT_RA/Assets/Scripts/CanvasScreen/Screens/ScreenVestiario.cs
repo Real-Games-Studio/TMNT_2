@@ -426,54 +426,50 @@ public class ScreenVestiario : CanvasScreen
             Debug.LogWarning("ScreenVestiario countdown sprites are not configured.");
         }
 
-        // FOTO 1: Captura apenas a câmera (sem UI) ANTES de esconder qualquer coisa
-        // A câmera ainda está visível neste ponto
-        Debug.Log("[ScreenVestiario] Tentando capturar apenas a câmera...");
-        Texture2D cameraOnlyTexture = CaptureCameraOnly();
-
-        // Agora sim esconde o countdown
+        // Esconde o countdown antes de qualquer captura
         if (countdownImage)
         {
             countdownImage.sprite = null;
             countdownImage.enabled = false;
             countdownImage.gameObject.SetActive(false);
         }
+
+        // FOTO 1: Captura COM UI (para o PictureDataController fazer upload)
+        Debug.Log("[ScreenVestiario] Capturando tela completa COM UI para upload...");
+        yield return new WaitForEndOfFrame();
+
+        Texture2D srgbScreenshotWithUI = ScreenCapture.CaptureScreenshotAsTexture();
+        Texture2D linearScreenshotWithUI = new Texture2D(srgbScreenshotWithUI.width, srgbScreenshotWithUI.height, TextureFormat.ARGB32, false, true);
+        Color32[] pixelsWithUI = srgbScreenshotWithUI.GetPixels32();
+        linearScreenshotWithUI.SetPixels32(pixelsWithUI);
+        linearScreenshotWithUI.Apply();
+        Destroy(srgbScreenshotWithUI);
+
+        // Send to PictureDataController for upload (COM UI)
+        if (pictureDataController != null)
+        {
+            pictureDataController.SetCapturedTexture(linearScreenshotWithUI);
+            Debug.Log("[ScreenVestiario] ✓ Foto COM UI enviada para PictureDataController (upload)");
+        }
+
+        // FOTO 2: Captura SEM UI (para mostrar no ScreenFinal)
+        Debug.Log("[ScreenVestiario] Capturando apenas a câmera SEM UI para exibição...");
+        Texture2D cameraOnlyTexture = CaptureCameraOnly();
+
         if (cameraOnlyTexture != null)
         {
             if (ScreenshotHolder.CameraOnlyTexture != null) Destroy(ScreenshotHolder.CameraOnlyTexture);
             ScreenshotHolder.CameraOnlyTexture = cameraOnlyTexture;
-            Debug.Log($"[ScreenVestiario] ✓ Foto APENAS da câmera capturada: {cameraOnlyTexture.width}x{cameraOnlyTexture.height}");
+            Debug.Log($"[ScreenVestiario] ✓ Foto SEM UI capturada para ScreenFinal: {cameraOnlyTexture.width}x{cameraOnlyTexture.height}");
         }
         else
         {
-            Debug.LogError("[ScreenVestiario] ✗ FALHA ao capturar foto da câmera! Verifique se 'cameraFeedSource' está configurado no Inspector.");
+            Debug.LogError("[ScreenVestiario] ✗ FALHA ao capturar foto SEM UI!");
         }
 
-        yield return new WaitForEndOfFrame();
-
-        // FOTO 2: Captura screenshot completo (com UI) para upload
-        Debug.Log("[ScreenVestiario] Capturando tela completa com UI...");
-        Texture2D srgbScreenshot = ScreenCapture.CaptureScreenshotAsTexture();
-
-        // Create a new texture marked as linear and copy the pixels to correct color
-        Texture2D linearScreenshot = new Texture2D(srgbScreenshot.width, srgbScreenshot.height, TextureFormat.ARGB32, false, true);
-        Color32[] pixels = srgbScreenshot.GetPixels32();
-        linearScreenshot.SetPixels32(pixels);
-        linearScreenshot.Apply();
-
-        // Clean up the original texture
-        Destroy(srgbScreenshot);
-
-        // Store the corrected texture for the final screen (mantido para compatibilidade)
+        // Store the screenshot with UI for compatibility (mantido para compatibilidade)
         if (ScreenshotHolder.ScreenshotTexture != null) Destroy(ScreenshotHolder.ScreenshotTexture);
-        ScreenshotHolder.ScreenshotTexture = linearScreenshot;
-
-        // Send to PictureDataController for upload (TELA COMPLETA COM UI)
-        if (pictureDataController != null)
-        {
-            pictureDataController.SetCapturedTexture(linearScreenshot);
-            Debug.Log("[ScreenVestiario] Foto completa (com UI) enviada para upload");
-        }
+        ScreenshotHolder.ScreenshotTexture = linearScreenshotWithUI;
 
         // Show flash effect
         StartCoroutine(ShowFlashEffect());
@@ -481,12 +477,12 @@ public class ScreenVestiario : CanvasScreen
         // Play capture audio
         PlayCaptureAudio();
 
-        // Mostra o freeze frame da câmera (sem UI) no ScreenVestiario
+        // Mostra o freeze frame da câmera (SEM UI) no ScreenVestiario
         if (freezeFrameImage != null && cameraOnlyTexture != null)
         {
             freezeFrameImage.texture = cameraOnlyTexture;
             freezeFrameImage.gameObject.SetActive(true);
-            Debug.Log("[ScreenVestiario] Mostrando freeze frame da câmera (sem UI)");
+            Debug.Log("[ScreenVestiario] Mostrando freeze frame da câmera (SEM UI)");
         }
 
         if (countdownGroup)
@@ -540,7 +536,8 @@ public class ScreenVestiario : CanvasScreen
 
     /// <summary>
     /// Captura apenas a textura da webcam (sem UI, overlays, etc.)
-    /// Desativa temporariamente os objetos configurados em uiObjectsToHide, captura a tela, e reativa.
+    /// Desativa temporariamente os objetos configurados em uiObjectsToHide e captura a tela.
+    /// NOTA: Os objetos permanecem desativados após a captura (são resetados ao trocar de tela).
     /// </summary>
     private Texture2D CaptureCameraOnly()
     {
@@ -562,7 +559,7 @@ public class ScreenVestiario : CanvasScreen
             return linearFallback;
         }
 
-        // Desativa os objetos configurados (não precisa reativar - voltam ao estado padrão no reload da cena)
+        // Desativa os objetos configurados para a captura limpa
         int disabledCount = 0;
         foreach (GameObject obj in uiObjectsToHide)
         {
@@ -576,14 +573,14 @@ public class ScreenVestiario : CanvasScreen
 
         Debug.Log($"[CaptureCameraOnly] {disabledCount} objetos de UI desativados - agora só a câmera está visível");
 
-        // Força atualização
+        // Força atualização do Canvas
         Canvas.ForceUpdateCanvases();
 
         // Captura a tela (agora SÓ tem a câmera, sem UI)
         Texture2D cameraOnlyScreenshot = ScreenCapture.CaptureScreenshotAsTexture();
         Debug.Log($"[CaptureCameraOnly] Screenshot SEM UI capturado: {cameraOnlyScreenshot.width}x{cameraOnlyScreenshot.height}");
 
-        // Converte para formato linear (igual faz no screenshot completo)
+        // Converte para formato linear (consistente com a outra captura)
         Texture2D linearTexture = new Texture2D(cameraOnlyScreenshot.width, cameraOnlyScreenshot.height, TextureFormat.ARGB32, false, true);
         Color32[] pixelsConverted = cameraOnlyScreenshot.GetPixels32();
         linearTexture.SetPixels32(pixelsConverted);
