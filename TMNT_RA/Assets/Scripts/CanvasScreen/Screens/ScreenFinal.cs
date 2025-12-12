@@ -39,15 +39,24 @@ public class ScreenFinal : CanvasScreen
             if (!isScreenActive)
             {
                 // This block now acts as OnShow
+                Debug.Log($"[ScreenFinal] Iniciando tela final...");
+                Debug.Log($"[ScreenFinal] screenshotDisplay: {(screenshotDisplay != null ? "OK" : "NULL")}");
+                Debug.Log($"[ScreenFinal] CameraOnlyTexture: {(ScreenshotHolder.CameraOnlyTexture != null ? $"{ScreenshotHolder.CameraOnlyTexture.width}x{ScreenshotHolder.CameraOnlyTexture.height}" : "NULL")}");
+                Debug.Log($"[ScreenFinal] ScreenshotTexture (com UI): {(ScreenshotHolder.ScreenshotTexture != null ? $"{ScreenshotHolder.ScreenshotTexture.width}x{ScreenshotHolder.ScreenshotTexture.height}" : "NULL")}");
+
                 // Exibe a foto da câmera que foi capturada no ScreenVestiario
                 if (screenshotDisplay != null && ScreenshotHolder.CameraOnlyTexture != null)
                 {
                     ApplyScreenshotTexture(ScreenshotHolder.CameraOnlyTexture);
-                    Debug.Log("[ScreenFinal] Exibindo foto da câmera capturada no ScreenVestiario");
+                    Debug.Log($"[ScreenFinal] ✓ Exibindo foto APENAS da câmera: {ScreenshotHolder.CameraOnlyTexture.width}x{ScreenshotHolder.CameraOnlyTexture.height}");
                 }
                 else
                 {
-                    Debug.LogWarning("[ScreenFinal] Nenhuma foto da câmera disponível para exibir!");
+                    Debug.LogError("[ScreenFinal] ✗ Nenhuma foto da câmera disponível para exibir!");
+                    if (screenshotDisplay == null)
+                        Debug.LogError("[ScreenFinal] → screenshotDisplay não está configurado!");
+                    if (ScreenshotHolder.CameraOnlyTexture == null)
+                        Debug.LogError("[ScreenFinal] → CameraOnlyTexture está NULL! Verifique se o ScreenVestiario capturou corretamente.");
                 }
 
                 timer = 0f;

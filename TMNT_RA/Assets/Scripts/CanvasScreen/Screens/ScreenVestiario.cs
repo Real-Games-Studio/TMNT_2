@@ -446,18 +446,25 @@ public class ScreenVestiario : CanvasScreen
             Debug.LogWarning("ScreenVestiario countdown sprites are not configured.");
         }
 
-        yield return new WaitForEndOfFrame();
-
-        // FOTO 1: Captura apenas a câmera (sem UI) para exibir no ScreenFinal
+        // FOTO 1: Captura apenas a câmera (sem UI) ANTES de qualquer screenshot
+        // Isso garante que pegamos apenas o feed da webcam puro
+        Debug.Log("[ScreenVestiario] Tentando capturar apenas a câmera...");
         Texture2D cameraOnlyTexture = CaptureCameraOnly();
         if (cameraOnlyTexture != null)
         {
             if (ScreenshotHolder.CameraOnlyTexture != null) Destroy(ScreenshotHolder.CameraOnlyTexture);
             ScreenshotHolder.CameraOnlyTexture = cameraOnlyTexture;
-            Debug.Log("[ScreenVestiario] Foto apenas da câmera capturada para ScreenFinal");
+            Debug.Log($"[ScreenVestiario] ✓ Foto APENAS da câmera capturada: {cameraOnlyTexture.width}x{cameraOnlyTexture.height}");
+        }
+        else
+        {
+            Debug.LogError("[ScreenVestiario] ✗ FALHA ao capturar foto da câmera! Verifique se 'cameraFeedSource' está configurado no Inspector.");
         }
 
+        yield return new WaitForEndOfFrame();
+
         // FOTO 2: Captura screenshot completo (com UI) para upload
+        Debug.Log("[ScreenVestiario] Capturando tela completa com UI...");
         Texture2D srgbScreenshot = ScreenCapture.CaptureScreenshotAsTexture();
 
         // Create a new texture marked as linear and copy the pixels to correct color
@@ -541,19 +548,26 @@ public class ScreenVestiario : CanvasScreen
     /// </summary>
     private Texture2D CaptureCameraOnly()
     {
+        Debug.Log($"[CaptureCameraOnly] Verificando cameraFeedSource... {(cameraFeedSource != null ? "OK" : "NULL")}");
+
         if (cameraFeedSource == null)
         {
-            Debug.LogWarning("[ScreenVestiario] cameraFeedSource não configurado! Não é possível capturar apenas a câmera.");
+            Debug.LogError("[CaptureCameraOnly] ✗ cameraFeedSource NÃO CONFIGURADO no Inspector!");
+            Debug.LogError("[CaptureCameraOnly] → Vá no GameObject ScreenVestiario e arraste o RawImage da webcam para o campo 'Camera Feed Source'");
             return null;
         }
 
         Texture cameraTexture = cameraFeedSource.texture;
+        Debug.Log($"[CaptureCameraOnly] Texture da câmera: {(cameraTexture != null ? $"{cameraTexture.width}x{cameraTexture.height}" : "NULL")}");
 
         if (cameraTexture == null)
         {
-            Debug.LogWarning("[ScreenVestiario] Camera feed não tem textura ativa!");
+            Debug.LogError("[CaptureCameraOnly] ✗ Camera feed não tem textura ativa!");
+            Debug.LogError("[CaptureCameraOnly] → A webcam pode não estar inicializada ainda");
             return null;
         }
+
+        Debug.Log($"[CaptureCameraOnly] Criando snapshot da câmera {cameraTexture.width}x{cameraTexture.height}...");
 
         // Cria uma cópia da textura da câmera
         Texture2D cameraSnapshot = new Texture2D(cameraTexture.width, cameraTexture.height, TextureFormat.RGB24, false);
@@ -570,7 +584,7 @@ public class ScreenVestiario : CanvasScreen
         RenderTexture.active = currentRT;
         RenderTexture.ReleaseTemporary(tempRT);
 
-        Debug.Log($"[ScreenVestiario] Capturou apenas a câmera: {cameraSnapshot.width}x{cameraSnapshot.height}");
+        Debug.Log($"[CaptureCameraOnly] ✓ Snapshot capturado com sucesso: {cameraSnapshot.width}x{cameraSnapshot.height}");
         return cameraSnapshot;
     }
 }
