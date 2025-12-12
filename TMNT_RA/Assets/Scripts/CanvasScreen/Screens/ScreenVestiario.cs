@@ -490,8 +490,7 @@ public class ScreenVestiario : CanvasScreen
         // Show flash effect
         StartCoroutine(ShowFlashEffect());
 
-        // Show a preview on the current screen and freeze the feed
-        ShowFreezeFrame(linearScreenshot);
+        // Play capture audio (SEM MOSTRAR A FOTO - ela vai direto pro upload)
         PlayCaptureAudio();
 
         if (countdownGroup)
@@ -502,8 +501,8 @@ public class ScreenVestiario : CanvasScreen
             countdownGroup.gameObject.SetActive(false);
         }
 
-        // Show picture for 2 seconds then move to the next screen
-        yield return new WaitForSeconds(2f);
+        // Aguarda 1 segundo e vai para a próxima tela
+        yield return new WaitForSeconds(1f);
         CallNextScreen();
     }
 
