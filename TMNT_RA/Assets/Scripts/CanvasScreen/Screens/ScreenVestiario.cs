@@ -391,6 +391,23 @@ public class ScreenVestiario : CanvasScreen
 
             for (int i = 0; i < countdownSprites.Length; i++)
             {
+                // NA PRIMEIRA SPRITE: Procura a câmera AGORA (quando está visível)
+                if (i == 0 && cameraFeedSource == null && !cameraFeedSearched)
+                {
+                    Debug.Log("[ScreenVestiario] Primeira sprite do countdown - procurando câmera AGORA (durante countdown visível)...");
+                    cameraFeedSource = FindCameraRawImage();
+                    cameraFeedSearched = true;
+
+                    if (cameraFeedSource != null)
+                    {
+                        Debug.Log($"[ScreenVestiario] ✓ Câmera encontrada durante countdown: {cameraFeedSource.name}");
+                    }
+                    else
+                    {
+                        Debug.LogError("[ScreenVestiario] ✗ Câmera NÃO encontrada durante countdown!");
+                    }
+                }
+
                 Sprite currentSprite = countdownSprites[i];
                 if (currentSprite == null)
                 {
@@ -561,36 +578,35 @@ public class ScreenVestiario : CanvasScreen
     /// </summary>
     private Texture2D CaptureCameraOnly()
     {
-        // Se não foi configurado manualmente, tenta encontrar automaticamente
-        if (cameraFeedSource == null && !cameraFeedSearched)
-        {
-            Debug.Log("[CaptureCameraOnly] cameraFeedSource não configurado, procurando automaticamente...");
-            cameraFeedSource = FindCameraRawImage();
-            cameraFeedSearched = true;
-        }
+        Debug.Log($"[CaptureCameraOnly] Iniciando captura da câmera...");
+        Debug.Log($"[CaptureCameraOnly] cameraFeedSource: {(cameraFeedSource != null ? cameraFeedSource.name : "NULL")}");
 
-        Debug.Log($"[CaptureCameraOnly] Verificando cameraFeedSource... {(cameraFeedSource != null ? "OK" : "NULL")}");
+        // Se não foi encontrado durante o countdown, tenta uma última vez
+        if (cameraFeedSource == null)
+        {
+            Debug.LogWarning("[CaptureCameraOnly] cameraFeedSource é NULL! Tentando procurar novamente como última tentativa...");
+            cameraFeedSource = FindCameraRawImage();
+        }
 
         if (cameraFeedSource == null)
         {
-            Debug.LogError("[CaptureCameraOnly] ✗ cameraFeedSource NÃO encontrado!");
-            Debug.LogError("[CaptureCameraOnly] → Configure manualmente ou verifique se há um RawImage com webcam ativa na cena");
+            Debug.LogError("[CaptureCameraOnly] ✗ FALHA CRÍTICA: cameraFeedSource NÃO encontrado mesmo após busca!");
+            Debug.LogError("[CaptureCameraOnly] → Configure manualmente o campo 'cameraFeedSource' no Inspector do ScreenVestiario");
             return null;
         }
 
         Texture cameraTexture = cameraFeedSource.texture;
         Debug.Log($"[CaptureCameraOnly] Texture da câmera: {(cameraTexture != null ? $"{cameraTexture.width}x{cameraTexture.height}" : "NULL")}");
-        Debug.Log($"[CaptureCameraOnly] RawImage name: {cameraFeedSource.name}");
-        Debug.Log($"[CaptureCameraOnly] RawImage ativo: {cameraFeedSource.gameObject.activeInHierarchy}");
+        Debug.Log($"[CaptureCameraOnly] RawImage: '{cameraFeedSource.name}' | Ativo: {cameraFeedSource.gameObject.activeInHierarchy}");
 
         if (cameraTexture == null)
         {
-            Debug.LogError("[CaptureCameraOnly] ✗ Camera feed não tem textura ativa!");
-            Debug.LogError("[CaptureCameraOnly] → A webcam pode não estar inicializada ainda, ou o RawImage está errado");
+            Debug.LogError("[CaptureCameraOnly] ✗ RawImage encontrado MAS texture é NULL!");
+            Debug.LogError("[CaptureCameraOnly] → A webcam pode ter sido desativada ou o RawImage perdeu a textura");
             return null;
         }
 
-        Debug.Log($"[CaptureCameraOnly] Criando snapshot da câmera {cameraTexture.width}x{cameraTexture.height}...");
+        Debug.Log($"[CaptureCameraOnly] Criando snapshot {cameraTexture.width}x{cameraTexture.height}...");
 
         // Cria uma cópia da textura da câmera
         Texture2D cameraSnapshot = new Texture2D(cameraTexture.width, cameraTexture.height, TextureFormat.RGB24, false);
@@ -607,7 +623,7 @@ public class ScreenVestiario : CanvasScreen
         RenderTexture.active = currentRT;
         RenderTexture.ReleaseTemporary(tempRT);
 
-        Debug.Log($"[CaptureCameraOnly] ✓ Snapshot capturado com sucesso: {cameraSnapshot.width}x{cameraSnapshot.height}");
+        Debug.Log($"[CaptureCameraOnly] ✓ Snapshot capturado: {cameraSnapshot.width}x{cameraSnapshot.height}");
         return cameraSnapshot;
     }
 
@@ -616,25 +632,49 @@ public class ScreenVestiario : CanvasScreen
     /// </summary>
     private RawImage FindCameraRawImage()
     {
-        Debug.Log("[FindCameraRawImage] Procurando por RawImages ativos na cena...");
+        Debug.Log("[FindCameraRawImage] Procurando por RawImages na cena (incluindo inativos)...");
 
-        // Procura todos os RawImages na cena
-        RawImage[] allRawImages = FindObjectsOfType<RawImage>();
-        Debug.Log($"[FindCameraRawImage] Encontrados {allRawImages.Length} RawImages na cena");
+        // Procura TODOS os RawImages na cena (incluindo inativos)
+        RawImage[] allRawImages = Resources.FindObjectsOfTypeAll<RawImage>();
+        Debug.Log($"[FindCameraRawImage] Encontrados {allRawImages.Length} RawImages TOTAL na cena");
 
-        foreach (RawImage rawImg in allRawImages)
+        // Log detalhado de CADA RawImage encontrado
+        for (int i = 0; i < allRawImages.Length; i++)
         {
-            if (rawImg != null && rawImg.gameObject.activeInHierarchy && rawImg.texture != null)
-            {
-                Debug.Log($"[FindCameraRawImage] Encontrado RawImage '{rawImg.name}' com textura {rawImg.texture.width}x{rawImg.texture.height}");
+            RawImage rawImg = allRawImages[i];
+            if (rawImg == null) continue;
 
-                // Pega o primeiro RawImage ativo que tenha uma textura
-                // (assumindo que é a webcam)
+            bool isActive = rawImg.gameObject.activeInHierarchy;
+            bool hasTexture = rawImg.texture != null;
+            string texInfo = hasTexture ? $"{rawImg.texture.width}x{rawImg.texture.height}" : "NULL";
+            string path = GetGameObjectPath(rawImg.gameObject);
+
+            Debug.Log($"[FindCameraRawImage] [{i}] '{rawImg.name}' | Ativo: {isActive} | Textura: {texInfo} | Path: {path}");
+
+            // Procura o primeiro RawImage com textura ativa (independente se está ativo ou não)
+            if (hasTexture)
+            {
+                Debug.Log($"[FindCameraRawImage] ✓ Usando RawImage '{rawImg.name}' com textura {texInfo}");
                 return rawImg;
             }
         }
 
-        Debug.LogWarning("[FindCameraRawImage] Nenhum RawImage com textura ativa foi encontrado!");
+        Debug.LogWarning("[FindCameraRawImage] ✗ Nenhum RawImage com textura foi encontrado!");
         return null;
+    }
+
+    /// <summary>
+    /// Helper para obter o caminho completo de um GameObject na hierarquia
+    /// </summary>
+    private string GetGameObjectPath(GameObject obj)
+    {
+        string path = obj.name;
+        Transform current = obj.transform.parent;
+        while (current != null)
+        {
+            path = current.name + "/" + path;
+            current = current.parent;
+        }
+        return path;
     }
 }

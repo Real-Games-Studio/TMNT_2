@@ -1752,7 +1752,7 @@ MonoBehaviour:
   spriteChangeInterval: 2.25
   pulseScale: 1.2
   pulseDuration: 0.2
-  screenshotImage: {fileID: 0}
+  screenshotImage: {fileID: 203681532}
   freezeFrameImage: {fileID: 365369913}
   captureAudioSource: {fileID: 794724957}
   captureAudioClip: {fileID: 0}
