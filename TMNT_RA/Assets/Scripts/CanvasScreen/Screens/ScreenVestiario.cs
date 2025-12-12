@@ -562,21 +562,19 @@ public class ScreenVestiario : CanvasScreen
             return linearFallback;
         }
 
-        // Guarda quais objetos estavam ativos antes de desativar
-        List<GameObject> objectsToReactivate = new List<GameObject>();
-
-        // Desativa os objetos configurados
+        // Desativa os objetos configurados (não precisa reativar - voltam ao estado padrão no reload da cena)
+        int disabledCount = 0;
         foreach (GameObject obj in uiObjectsToHide)
         {
             if (obj != null && obj.activeSelf)
             {
                 obj.SetActive(false);
-                objectsToReactivate.Add(obj);
+                disabledCount++;
                 Debug.Log($"[CaptureCameraOnly] Desativado: {obj.name}");
             }
         }
 
-        Debug.Log($"[CaptureCameraOnly] {objectsToReactivate.Count} objetos de UI desativados - agora só a câmera está visível");
+        Debug.Log($"[CaptureCameraOnly] {disabledCount} objetos de UI desativados - agora só a câmera está visível");
 
         // Força atualização
         Canvas.ForceUpdateCanvases();
@@ -584,16 +582,6 @@ public class ScreenVestiario : CanvasScreen
         // Captura a tela (agora SÓ tem a câmera, sem UI)
         Texture2D cameraOnlyScreenshot = ScreenCapture.CaptureScreenshotAsTexture();
         Debug.Log($"[CaptureCameraOnly] Screenshot SEM UI capturado: {cameraOnlyScreenshot.width}x{cameraOnlyScreenshot.height}");
-
-        // REATIVA todos os objetos que foram desativados
-        foreach (GameObject obj in objectsToReactivate)
-        {
-            if (obj != null)
-            {
-                obj.SetActive(true);
-            }
-        }
-        Debug.Log($"[CaptureCameraOnly] {objectsToReactivate.Count} objetos de UI reativados - UI restaurada");
 
         // Converte para formato linear (igual faz no screenshot completo)
         Texture2D linearTexture = new Texture2D(cameraOnlyScreenshot.width, cameraOnlyScreenshot.height, TextureFormat.ARGB32, false, true);
