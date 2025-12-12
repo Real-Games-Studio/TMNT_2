@@ -10,9 +10,6 @@ public class ScreenFinal : CanvasScreen
     [SerializeField] private RawImage screenshotDisplay;
     [SerializeField] private bool preserveScreenshotAspect = true;
 
-    [Header("Camera Feed Settings")]
-    [Tooltip("WebCamTexture ou RawImage que mostra a câmera ao vivo")]
-    [SerializeField] private RawImage cameraFeedSource;
 
     [Header("Screenshot Settings")]
     [SerializeField] private QrCodeCreator qrCodeCreator;
@@ -42,8 +39,16 @@ public class ScreenFinal : CanvasScreen
             if (!isScreenActive)
             {
                 // This block now acts as OnShow
-                // Captura um snapshot congelado apenas da câmera (sem UI)
-                StartCoroutine(CaptureCameraSnapshotOnShow());
+                // Exibe a foto da câmera que foi capturada no ScreenVestiario
+                if (screenshotDisplay != null && ScreenshotHolder.CameraOnlyTexture != null)
+                {
+                    ApplyScreenshotTexture(ScreenshotHolder.CameraOnlyTexture);
+                    Debug.Log("[ScreenFinal] Exibindo foto da câmera capturada no ScreenVestiario");
+                }
+                else
+                {
+                    Debug.LogWarning("[ScreenFinal] Nenhuma foto da câmera disponível para exibir!");
+                }
 
                 timer = 0f;
                 screenshotTaken = false;
@@ -54,11 +59,16 @@ public class ScreenFinal : CanvasScreen
             timer += Time.deltaTime;
             if (timer >= timeout)
             {
-                // Clean up the texture before resetting
+                // Clean up the textures before resetting
                 if (ScreenshotHolder.ScreenshotTexture != null)
                 {
                     Destroy(ScreenshotHolder.ScreenshotTexture);
                     ScreenshotHolder.ScreenshotTexture = null;
+                }
+                if (ScreenshotHolder.CameraOnlyTexture != null)
+                {
+                    Destroy(ScreenshotHolder.CameraOnlyTexture);
+                    ScreenshotHolder.CameraOnlyTexture = null;
                 }
                 SceneManager.LoadScene(0);
             }
@@ -72,49 +82,6 @@ public class ScreenFinal : CanvasScreen
                 RestoreScreenshotDisplaySize();
             }
         }
-    }
-
-    /// <summary>
-    /// Captura um snapshot congelado apenas da câmera (sem UI) e exibe no screenshotDisplay
-    /// </summary>
-    private IEnumerator CaptureCameraSnapshotOnShow()
-    {
-        yield return new WaitForEndOfFrame();
-
-        if (cameraFeedSource == null || screenshotDisplay == null)
-        {
-            Debug.LogWarning("[ScreenFinal] cameraFeedSource ou screenshotDisplay não configurados!");
-            yield break;
-        }
-
-        // Pega a textura da webcam diretamente do RawImage da câmera
-        Texture cameraTexture = cameraFeedSource.texture;
-
-        if (cameraTexture == null)
-        {
-            Debug.LogWarning("[ScreenFinal] Camera feed não tem textura ativa!");
-            yield break;
-        }
-
-        // Cria uma cópia congelada (snapshot) da textura da câmera
-        Texture2D cameraSnapshot = new Texture2D(cameraTexture.width, cameraTexture.height, TextureFormat.RGB24, false);
-
-        RenderTexture currentRT = RenderTexture.active;
-        RenderTexture tempRT = RenderTexture.GetTemporary(cameraTexture.width, cameraTexture.height);
-
-        Graphics.Blit(cameraTexture, tempRT);
-        RenderTexture.active = tempRT;
-
-        cameraSnapshot.ReadPixels(new Rect(0, 0, tempRT.width, tempRT.height), 0, 0);
-        cameraSnapshot.Apply();
-
-        RenderTexture.active = currentRT;
-        RenderTexture.ReleaseTemporary(tempRT);
-
-        // Aplica o snapshot congelado da câmera no display
-        ApplyScreenshotTexture(cameraSnapshot);
-
-        Debug.Log($"[ScreenFinal] Snapshot da câmera capturado e exibido (congelado): {cameraSnapshot.width}x{cameraSnapshot.height}");
     }
 
     private void ApplyScreenshotTexture(Texture texture)

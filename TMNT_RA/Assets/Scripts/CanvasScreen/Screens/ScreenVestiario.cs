@@ -55,6 +55,10 @@ public class ScreenVestiario : CanvasScreen
     [Tooltip("PictureDataControlelr to handle upload and QR code generation.")]
     [SerializeField] private PictureDataControlelr pictureDataController;
 
+    [Header("Camera Capture")]
+    [Tooltip("RawImage que mostra a câmera ao vivo (para capturar apenas a webcam)")]
+    [SerializeField] private RawImage cameraFeedSource;
+
     // Inactivity detection
     private readonly Dictionary<GameObject, float> inactiveTimers = new Dictionary<GameObject, float>();
     private bool previousScreenCalled = false;
@@ -444,7 +448,16 @@ public class ScreenVestiario : CanvasScreen
 
         yield return new WaitForEndOfFrame();
 
-        // Capture screenshot (sRGB color space)
+        // FOTO 1: Captura apenas a câmera (sem UI) para exibir no ScreenFinal
+        Texture2D cameraOnlyTexture = CaptureCameraOnly();
+        if (cameraOnlyTexture != null)
+        {
+            if (ScreenshotHolder.CameraOnlyTexture != null) Destroy(ScreenshotHolder.CameraOnlyTexture);
+            ScreenshotHolder.CameraOnlyTexture = cameraOnlyTexture;
+            Debug.Log("[ScreenVestiario] Foto apenas da câmera capturada para ScreenFinal");
+        }
+
+        // FOTO 2: Captura screenshot completo (com UI) para upload
         Texture2D srgbScreenshot = ScreenCapture.CaptureScreenshotAsTexture();
 
         // Create a new texture marked as linear and copy the pixels to correct color
@@ -456,14 +469,15 @@ public class ScreenVestiario : CanvasScreen
         // Clean up the original texture
         Destroy(srgbScreenshot);
 
-        // Store the corrected texture for the final screen
+        // Store the corrected texture for the final screen (mantido para compatibilidade)
         if (ScreenshotHolder.ScreenshotTexture != null) Destroy(ScreenshotHolder.ScreenshotTexture);
         ScreenshotHolder.ScreenshotTexture = linearScreenshot;
 
-        // Send to PictureDataController for upload
+        // Send to PictureDataController for upload (TELA COMPLETA COM UI)
         if (pictureDataController != null)
         {
             pictureDataController.SetCapturedTexture(linearScreenshot);
+            Debug.Log("[ScreenVestiario] Foto completa (com UI) enviada para upload");
         }
 
         // Show flash effect
@@ -520,5 +534,43 @@ public class ScreenVestiario : CanvasScreen
             StopCoroutine(countdownCoroutine);
             countdownCoroutine = null;
         }
+    }
+
+    /// <summary>
+    /// Captura apenas a textura da webcam (sem UI, overlays, etc.)
+    /// </summary>
+    private Texture2D CaptureCameraOnly()
+    {
+        if (cameraFeedSource == null)
+        {
+            Debug.LogWarning("[ScreenVestiario] cameraFeedSource não configurado! Não é possível capturar apenas a câmera.");
+            return null;
+        }
+
+        Texture cameraTexture = cameraFeedSource.texture;
+
+        if (cameraTexture == null)
+        {
+            Debug.LogWarning("[ScreenVestiario] Camera feed não tem textura ativa!");
+            return null;
+        }
+
+        // Cria uma cópia da textura da câmera
+        Texture2D cameraSnapshot = new Texture2D(cameraTexture.width, cameraTexture.height, TextureFormat.RGB24, false);
+
+        RenderTexture currentRT = RenderTexture.active;
+        RenderTexture tempRT = RenderTexture.GetTemporary(cameraTexture.width, cameraTexture.height);
+
+        Graphics.Blit(cameraTexture, tempRT);
+        RenderTexture.active = tempRT;
+
+        cameraSnapshot.ReadPixels(new Rect(0, 0, tempRT.width, tempRT.height), 0, 0);
+        cameraSnapshot.Apply();
+
+        RenderTexture.active = currentRT;
+        RenderTexture.ReleaseTemporary(tempRT);
+
+        Debug.Log($"[ScreenVestiario] Capturou apenas a câmera: {cameraSnapshot.width}x{cameraSnapshot.height}");
+        return cameraSnapshot;
     }
 }
