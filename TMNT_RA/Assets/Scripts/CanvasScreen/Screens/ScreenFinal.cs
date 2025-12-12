@@ -10,6 +10,10 @@ public class ScreenFinal : CanvasScreen
     [SerializeField] private RawImage screenshotDisplay;
     [SerializeField] private bool preserveScreenshotAspect = true;
 
+    [Header("Camera Feed Settings")]
+    [Tooltip("WebCamTexture ou RawImage que mostra a câmera ao vivo")]
+    [SerializeField] private RawImage cameraFeedSource;
+
     [Header("Screenshot Settings")]
     [SerializeField] private QrCodeCreator qrCodeCreator;
     [SerializeField] private Canvas targetCanvas; // Canvas onde está a área a ser capturada
@@ -38,18 +42,11 @@ public class ScreenFinal : CanvasScreen
             if (!isScreenActive)
             {
                 // This block now acts as OnShow
-                if (screenshotDisplay != null && ScreenshotHolder.ScreenshotTexture != null)
-                {
-                    ApplyScreenshotTexture(ScreenshotHolder.ScreenshotTexture);
-                }
+                // Captura um snapshot congelado apenas da câmera (sem UI)
+                StartCoroutine(CaptureCameraSnapshotOnShow());
+
                 timer = 0f;
                 screenshotTaken = false;
-
-                // Upload desabilitado - a foto já foi enviada no ScreenVestiario
-                // if (autoUploadOnShow)
-                // {
-                //     StartCoroutine(CaptureAndUploadScreenshot());
-                // }
 
                 isScreenActive = true;
             }
@@ -75,6 +72,49 @@ public class ScreenFinal : CanvasScreen
                 RestoreScreenshotDisplaySize();
             }
         }
+    }
+
+    /// <summary>
+    /// Captura um snapshot congelado apenas da câmera (sem UI) e exibe no screenshotDisplay
+    /// </summary>
+    private IEnumerator CaptureCameraSnapshotOnShow()
+    {
+        yield return new WaitForEndOfFrame();
+
+        if (cameraFeedSource == null || screenshotDisplay == null)
+        {
+            Debug.LogWarning("[ScreenFinal] cameraFeedSource ou screenshotDisplay não configurados!");
+            yield break;
+        }
+
+        // Pega a textura da webcam diretamente do RawImage da câmera
+        Texture cameraTexture = cameraFeedSource.texture;
+
+        if (cameraTexture == null)
+        {
+            Debug.LogWarning("[ScreenFinal] Camera feed não tem textura ativa!");
+            yield break;
+        }
+
+        // Cria uma cópia congelada (snapshot) da textura da câmera
+        Texture2D cameraSnapshot = new Texture2D(cameraTexture.width, cameraTexture.height, TextureFormat.RGB24, false);
+
+        RenderTexture currentRT = RenderTexture.active;
+        RenderTexture tempRT = RenderTexture.GetTemporary(cameraTexture.width, cameraTexture.height);
+
+        Graphics.Blit(cameraTexture, tempRT);
+        RenderTexture.active = tempRT;
+
+        cameraSnapshot.ReadPixels(new Rect(0, 0, tempRT.width, tempRT.height), 0, 0);
+        cameraSnapshot.Apply();
+
+        RenderTexture.active = currentRT;
+        RenderTexture.ReleaseTemporary(tempRT);
+
+        // Aplica o snapshot congelado da câmera no display
+        ApplyScreenshotTexture(cameraSnapshot);
+
+        Debug.Log($"[ScreenFinal] Snapshot da câmera capturado e exibido (congelado): {cameraSnapshot.width}x{cameraSnapshot.height}");
     }
 
     private void ApplyScreenshotTexture(Texture texture)
