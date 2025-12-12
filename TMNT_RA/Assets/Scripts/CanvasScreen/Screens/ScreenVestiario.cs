@@ -58,6 +58,8 @@ public class ScreenVestiario : CanvasScreen
     [Header("Camera Capture")]
     [Tooltip("RawImage que mostra a câmera ao vivo (para capturar apenas a webcam). Se deixar vazio, procura automaticamente.")]
     [SerializeField] private RawImage cameraFeedSource;
+    [Tooltip("Se não encontrar RawImage com textura, captura a região da tela onde a câmera está visível")]
+    [SerializeField] private RectTransform cameraRegion; // Área da tela onde a câmera é exibida
     private bool cameraFeedSearched = false;
 
     // Inactivity detection
@@ -575,40 +577,60 @@ public class ScreenVestiario : CanvasScreen
 
     /// <summary>
     /// Captura apenas a textura da webcam (sem UI, overlays, etc.)
+    /// A webcam é renderizada via OpenCV/WebGL como VideoBackground (quad 3D).
+    /// Para capturar sem UI: desativa o Canvas, captura a tela (só fica a câmera), e reativa o Canvas.
     /// </summary>
     private Texture2D CaptureCameraOnly()
     {
-        Debug.Log($"[CaptureCameraOnly] Iniciando captura da câmera...");
-        Debug.Log($"[CaptureCameraOnly] cameraFeedSource: {(cameraFeedSource != null ? cameraFeedSource.name : "NULL")}");
+        Debug.Log($"[CaptureCameraOnly] Iniciando captura APENAS da câmera (sem UI)...");
 
-        // Se não foi encontrado durante o countdown, tenta uma última vez
-        if (cameraFeedSource == null)
+        // Encontra o Canvas principal
+        Canvas mainCanvas = GetComponentInParent<Canvas>();
+        if (mainCanvas == null)
         {
-            Debug.LogWarning("[CaptureCameraOnly] cameraFeedSource é NULL! Tentando procurar novamente como última tentativa...");
-            cameraFeedSource = FindCameraRawImage();
-        }
-
-        if (cameraFeedSource == null)
-        {
-            Debug.LogError("[CaptureCameraOnly] ✗ FALHA CRÍTICA: cameraFeedSource NÃO encontrado mesmo após busca!");
-            Debug.LogError("[CaptureCameraOnly] → Configure manualmente o campo 'cameraFeedSource' no Inspector do ScreenVestiario");
+            Debug.LogError("[CaptureCameraOnly] ✗ Canvas não encontrado!");
             return null;
         }
 
-        Texture cameraTexture = cameraFeedSource.texture;
-        Debug.Log($"[CaptureCameraOnly] Texture da câmera: {(cameraTexture != null ? $"{cameraTexture.width}x{cameraTexture.height}" : "NULL")}");
-        Debug.Log($"[CaptureCameraOnly] RawImage: '{cameraFeedSource.name}' | Ativo: {cameraFeedSource.gameObject.activeInHierarchy}");
+        Debug.Log($"[CaptureCameraOnly] Canvas encontrado: '{mainCanvas.name}'");
+        Debug.Log($"[CaptureCameraOnly] Canvas ativo antes: {mainCanvas.enabled}");
 
-        if (cameraTexture == null)
-        {
-            Debug.LogError("[CaptureCameraOnly] ✗ RawImage encontrado MAS texture é NULL!");
-            Debug.LogError("[CaptureCameraOnly] → A webcam pode ter sido desativada ou o RawImage perdeu a textura");
-            return null;
-        }
+        // Desativa o Canvas para esconder TODA a UI
+        mainCanvas.enabled = false;
+        Debug.Log("[CaptureCameraOnly] Canvas DESATIVADO - agora só a câmera está visível");
 
-        Debug.Log($"[CaptureCameraOnly] Criando snapshot {cameraTexture.width}x{cameraTexture.height}...");
+        // Aguarda 1 frame para garantir que a UI foi escondida
+        // (não pode usar yield return aqui pois não é coroutine, mas vamos forçar um render)
+        Canvas.ForceUpdateCanvases();
 
-        // Cria uma cópia da textura da câmera
+        // Captura a tela (agora SÓ tem a câmera, sem UI)
+        Texture2D cameraOnlyScreenshot = ScreenCapture.CaptureScreenshotAsTexture();
+        Debug.Log($"[CaptureCameraOnly] Screenshot SEM UI capturado: {cameraOnlyScreenshot.width}x{cameraOnlyScreenshot.height}");
+
+        // REATIVA o Canvas imediatamente
+        mainCanvas.enabled = true;
+        Debug.Log("[CaptureCameraOnly] Canvas REATIVADO - UI restaurada");
+
+        // Converte para formato linear (igual faz no screenshot completo)
+        Texture2D linearTexture = new Texture2D(cameraOnlyScreenshot.width, cameraOnlyScreenshot.height, TextureFormat.ARGB32, false, true);
+        Color32[] pixels = cameraOnlyScreenshot.GetPixels32();
+        linearTexture.SetPixels32(pixels);
+        linearTexture.Apply();
+
+        Destroy(cameraOnlyScreenshot);
+
+        Debug.Log($"[CaptureCameraOnly] ✓ Foto APENAS da câmera capturada com sucesso: {linearTexture.width}x{linearTexture.height}");
+        return linearTexture;
+    }
+
+    /// <summary>
+    /// Captura a textura de um RawImage (método antigo)
+    /// </summary>
+    private Texture2D CaptureFromRawImageTexture(RawImage rawImage)
+    {
+        Texture cameraTexture = rawImage.texture;
+        Debug.Log($"[CaptureFromRawImageTexture] Capturando de textura {cameraTexture.width}x{cameraTexture.height}");
+
         Texture2D cameraSnapshot = new Texture2D(cameraTexture.width, cameraTexture.height, TextureFormat.RGB24, false);
 
         RenderTexture currentRT = RenderTexture.active;
@@ -623,8 +645,91 @@ public class ScreenVestiario : CanvasScreen
         RenderTexture.active = currentRT;
         RenderTexture.ReleaseTemporary(tempRT);
 
-        Debug.Log($"[CaptureCameraOnly] ✓ Snapshot capturado: {cameraSnapshot.width}x{cameraSnapshot.height}");
+        Debug.Log($"[CaptureFromRawImageTexture] ✓ Capturado: {cameraSnapshot.width}x{cameraSnapshot.height}");
         return cameraSnapshot;
+    }
+
+    /// <summary>
+    /// Captura uma região específica da tela baseado em um RectTransform
+    /// </summary>
+    private Texture2D CaptureScreenRegion(RectTransform region)
+    {
+        if (region == null)
+        {
+            Debug.LogError("[CaptureScreenRegion] ✗ Region é NULL!");
+            return null;
+        }
+
+        // Converte a posição do RectTransform para coordenadas de tela
+        Canvas canvas = region.GetComponentInParent<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogError("[CaptureScreenRegion] ✗ Não encontrou Canvas pai!");
+            return null;
+        }
+
+        // Pega os cantos do RectTransform em coordenadas de tela
+        Vector3[] corners = new Vector3[4];
+        region.GetWorldCorners(corners);
+
+        // Converte para coordenadas de tela
+        Camera cam = canvas.worldCamera ?? Camera.main;
+        Vector2 min = cam.WorldToScreenPoint(corners[0]);
+        Vector2 max = cam.WorldToScreenPoint(corners[2]);
+
+        // Calcula a região a ser capturada
+        int x = Mathf.RoundToInt(min.x);
+        int y = Mathf.RoundToInt(min.y);
+        int width = Mathf.RoundToInt(max.x - min.x);
+        int height = Mathf.RoundToInt(max.y - min.y);
+
+        Debug.Log($"[CaptureScreenRegion] Região calculada: x={x}, y={y}, w={width}, h={height}");
+        Debug.Log($"[CaptureScreenRegion] Tela: {Screen.width}x{Screen.height}");
+
+        // Garante que está dentro dos limites da tela
+        x = Mathf.Clamp(x, 0, Screen.width);
+        y = Mathf.Clamp(y, 0, Screen.height);
+        width = Mathf.Clamp(width, 1, Screen.width - x);
+        height = Mathf.Clamp(height, 1, Screen.height - y);
+
+        // Captura a tela inteira primeiro
+        Texture2D fullScreenshot = ScreenCapture.CaptureScreenshotAsTexture();
+        Debug.Log($"[CaptureScreenRegion] Screenshot completo: {fullScreenshot.width}x{fullScreenshot.height}");
+
+        // Recorta apenas a região da câmera
+        Texture2D croppedTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
+        Color[] pixels = fullScreenshot.GetPixels(x, y, width, height);
+        croppedTexture.SetPixels(pixels);
+        croppedTexture.Apply();
+
+        // Limpa o screenshot completo
+        Destroy(fullScreenshot);
+
+        Debug.Log($"[CaptureScreenRegion] ✓ Região capturada: {croppedTexture.width}x{croppedTexture.height}");
+        return croppedTexture;
+    }
+
+    /// <summary>
+    /// Encontra qualquer RawImage no Vestiario para usar como referência
+    /// </summary>
+    private RawImage FindAnyRawImageInVestiario()
+    {
+        Debug.Log("[FindAnyRawImageInVestiario] Procurando qualquer RawImage no Vestiario...");
+
+        // Procura RawImages filhos deste GameObject
+        RawImage[] rawImages = GetComponentsInChildren<RawImage>(true);
+
+        foreach (RawImage rawImg in rawImages)
+        {
+            // Ignora o FreezeFrame
+            if (rawImg == freezeFrameImage) continue;
+
+            Debug.Log($"[FindAnyRawImageInVestiario] ✓ Encontrado: '{rawImg.name}' em {GetGameObjectPath(rawImg.gameObject)}");
+            return rawImg;
+        }
+
+        Debug.LogWarning("[FindAnyRawImageInVestiario] ✗ Nenhum RawImage encontrado!");
+        return null;
     }
 
     /// <summary>
