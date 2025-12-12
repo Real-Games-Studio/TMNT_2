@@ -436,20 +436,25 @@ public class ScreenVestiario : CanvasScreen
                 }
             }
 
-            Debug.Log("[ScreenVestiario] Countdown finished - hiding countdown image");
-            countdownImage.sprite = null;
-            countdownImage.enabled = false;
-            countdownImage.gameObject.SetActive(false);
+            Debug.Log("[ScreenVestiario] Countdown finished");
         }
         else
         {
             Debug.LogWarning("ScreenVestiario countdown sprites are not configured.");
         }
 
-        // FOTO 1: Captura apenas a câmera (sem UI) ANTES de qualquer screenshot
-        // Isso garante que pegamos apenas o feed da webcam puro
+        // FOTO 1: Captura apenas a câmera (sem UI) ANTES de esconder qualquer coisa
+        // A câmera ainda está visível neste ponto
         Debug.Log("[ScreenVestiario] Tentando capturar apenas a câmera...");
         Texture2D cameraOnlyTexture = CaptureCameraOnly();
+
+        // Agora sim esconde o countdown
+        if (countdownImage)
+        {
+            countdownImage.sprite = null;
+            countdownImage.enabled = false;
+            countdownImage.gameObject.SetActive(false);
+        }
         if (cameraOnlyTexture != null)
         {
             if (ScreenshotHolder.CameraOnlyTexture != null) Destroy(ScreenshotHolder.CameraOnlyTexture);
