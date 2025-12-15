@@ -73,13 +73,9 @@ public class DebugPositionAdjuster : MonoBehaviour
             {
                 if (obj != null)
                 {
-                    RectTransform rt = obj.GetComponent<RectTransform>();
-                    if (rt != null)
-                    {
-                        info += $"• {obj.name}\n";
-                        info += $"  Pos: ({rt.anchoredPosition.x:F1}, {rt.anchoredPosition.y:F1})\n";
-                        info += $"  Scale: {rt.localScale.x:F2}\n";
-                    }
+                    info += $"• {obj.name}\n";
+                    info += $"  Pos: ({obj.localPosition.x:F1}, {obj.localPosition.y:F1})\n";
+                    info += $"  Scale: {obj.localScale.x:F2}\n";
                 }
             }
         }
@@ -103,7 +99,7 @@ public class DebugPositionAdjuster : MonoBehaviour
                 PlayerPrefs.Save();
 
                 // Tenta ir para o ScreenVestiario (você pode ajustar conforme sua navegação)
-                var screenVestiario = FindObjectOfType<ScreenVestiario>();
+                var screenVestiario = FindFirstObjectByType<ScreenVestiario>();
                 if (screenVestiario != null)
                 {
                     screenVestiario.CallScreenByName("Vestiario");
@@ -226,11 +222,11 @@ public class DebugPositionAdjuster : MonoBehaviour
         {
             if (obj != null)
             {
-                RectTransform rt = obj.GetComponent<RectTransform>();
-                if (rt != null)
-                {
-                    rt.anchoredPosition += delta;
-                }
+                // Move diretamente no localPosition (X e Y)
+                Vector3 currentPos = obj.localPosition;
+                currentPos.x += delta.x;
+                currentPos.y += delta.y;
+                obj.localPosition = currentPos;
             }
         }
     }
@@ -245,13 +241,9 @@ public class DebugPositionAdjuster : MonoBehaviour
             {
                 string objName = obj.name;
 
-                RectTransform rt = obj.GetComponent<RectTransform>();
-                if (rt != null)
-                {
-                    // Salva posição
-                    PlayerPrefs.SetFloat(objName + positionXSuffix, rt.anchoredPosition.x);
-                    PlayerPrefs.SetFloat(objName + positionYSuffix, rt.anchoredPosition.y);
-                }
+                // Salva posição (localPosition X e Y)
+                PlayerPrefs.SetFloat(objName + positionXSuffix, obj.localPosition.x);
+                PlayerPrefs.SetFloat(objName + positionYSuffix, obj.localPosition.y);
 
                 // Salva escala
                 PlayerPrefs.SetFloat(objName + scaleSuffix, obj.localScale.x);
@@ -274,17 +266,16 @@ public class DebugPositionAdjuster : MonoBehaviour
             {
                 string objName = obj.name;
 
-                // Carrega posição
-                RectTransform rt = obj.GetComponent<RectTransform>();
-                if (rt != null)
+                // Carrega posição (localPosition X e Y)
+                if (PlayerPrefs.HasKey(objName + positionXSuffix))
                 {
-                    if (PlayerPrefs.HasKey(objName + positionXSuffix))
-                    {
-                        float x = PlayerPrefs.GetFloat(objName + positionXSuffix);
-                        float y = PlayerPrefs.GetFloat(objName + positionYSuffix);
-                        rt.anchoredPosition = new Vector2(x, y);
-                        loadedCount++;
-                    }
+                    float x = PlayerPrefs.GetFloat(objName + positionXSuffix);
+                    float y = PlayerPrefs.GetFloat(objName + positionYSuffix);
+                    Vector3 pos = obj.localPosition;
+                    pos.x = x;
+                    pos.y = y;
+                    obj.localPosition = pos;
+                    loadedCount++;
                 }
 
                 // Carrega escala
