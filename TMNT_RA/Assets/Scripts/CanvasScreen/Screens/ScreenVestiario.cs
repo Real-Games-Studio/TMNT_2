@@ -97,11 +97,14 @@ public class ScreenVestiario : CanvasScreen
             }
             wasFaceTrackedLastFrame = isFaceCurrentlyTracked;
 
-            // Always handle inactivity check
-            HandleInactivityCheck();
+            // Always handle inactivity check (exceto em modo debug)
+            if (!DebugPositionAdjuster.IsDebugMode())
+            {
+                HandleInactivityCheck();
+            }
 
-            // Don't proceed with countdown flow if we are already counting down
-            if (isCountingDown) return;
+            // Don't proceed with countdown flow if we are already counting down OR if in debug mode
+            if (isCountingDown || DebugPositionAdjuster.IsDebugMode()) return;
 
             if (isFaceCurrentlyTracked)
             {
