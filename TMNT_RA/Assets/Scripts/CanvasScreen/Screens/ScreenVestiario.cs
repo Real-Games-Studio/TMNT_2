@@ -422,14 +422,20 @@ public class ScreenVestiario : CanvasScreen
                 }
             }
 
-            Debug.Log("[ScreenVestiario] Countdown finished");
+            Debug.Log("[ScreenVestiario] Countdown finished - aguardando desaparecer...");
+
+            // AGUARDA O ÚLTIMO NÚMERO (1) DESAPARECER COMPLETAMENTE
+            if (spriteChangeInterval > 0f)
+            {
+                yield return new WaitForSeconds(spriteChangeInterval);
+            }
         }
         else
         {
             Debug.LogWarning("ScreenVestiario countdown sprites are not configured.");
         }
 
-        // Esconde o countdown antes de qualquer captura
+        // Esconde o countdown completamente
         if (countdownImage)
         {
             countdownImage.sprite = null;
@@ -437,7 +443,17 @@ public class ScreenVestiario : CanvasScreen
             countdownImage.gameObject.SetActive(false);
         }
 
-        // ========== CAPTURA ULTRA OTIMIZADA - ZERO TRAVADAS ==========
+        if (countdownGroup)
+        {
+            countdownGroup.alpha = 0f;
+            countdownGroup.interactable = false;
+            countdownGroup.blocksRaycasts = false;
+            countdownGroup.gameObject.SetActive(false);
+        }
+
+        Debug.Log("[ScreenVestiario] Countdown sumiu - tirando foto!");
+
+        // ========== CAPTURA ULTRA OTIMIZADA ==========
         // Desativa os objetos de UI ANTES da captura para ter a foto limpa
         List<GameObject> disabledObjects = new List<GameObject>();
         if (uiObjectsToHide != null && uiObjectsToHide.Count > 0)
@@ -477,33 +493,31 @@ public class ScreenVestiario : CanvasScreen
         ScreenshotHolder.CameraOnlyTexture = cameraOnlyTexture;
         Debug.Log($"[ScreenVestiario] ✓ Foto limpa salva: {cameraOnlyTexture.width}x{cameraOnlyTexture.height}");
 
-        // Efeitos de feedback IMEDIATOS (não espera)
+        // FLASH + FREEZE FRAME (0.5 segundos)
+        Debug.Log("[ScreenVestiario] Mostrando flash + freeze frame...");
+
+        // Inicia flash effect
         StartCoroutine(ShowFlashEffect());
+
+        // Toca som de captura
         PlayCaptureAudio();
 
-        // Esconde countdown group
-        if (countdownGroup)
-        {
-            countdownGroup.alpha = 0f;
-            countdownGroup.interactable = false;
-            countdownGroup.blocksRaycasts = false;
-            countdownGroup.gameObject.SetActive(false);
-        }
-
-        // Mostra freeze frame brevemente (opcional - pode comentar se travar)
+        // Mostra freeze frame da foto congelada
         if (freezeFrameImage != null && cameraOnlyTexture != null)
         {
             freezeFrameImage.texture = cameraOnlyTexture;
             freezeFrameImage.gameObject.SetActive(true);
         }
 
-        // Aguarda tempo mínimo para feedback visual
-        yield return new WaitForSeconds(0.3f);
+        // AGUARDA 0.5 SEGUNDOS com frame congelado
+        yield return new WaitForSeconds(0.5f);
 
-        // Inicia captura COM UI em background (não bloqueia)
+        Debug.Log("[ScreenVestiario] Indo para próxima tela...");
+
+        // Inicia captura COM UI em background (não bloqueia transição)
         StartCoroutine(CaptureWithUIInBackground());
 
-        // VAI PARA PRÓXIMA TELA IMEDIATAMENTE - não espera upload
+        // VAI PARA PRÓXIMA TELA
         CallNextScreen();
     }
 
