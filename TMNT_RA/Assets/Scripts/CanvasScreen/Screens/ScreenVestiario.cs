@@ -437,7 +437,7 @@ public class ScreenVestiario : CanvasScreen
             countdownImage.gameObject.SetActive(false);
         }
 
-        // ========== CAPTURA OTIMIZADA - SEM TRAVADAS ==========
+        // ========== CAPTURA ULTRA OTIMIZADA - ZERO TRAVADAS ==========
         // Desativa os objetos de UI ANTES da captura para ter a foto limpa
         List<GameObject> disabledObjects = new List<GameObject>();
         if (uiObjectsToHide != null && uiObjectsToHide.Count > 0)
@@ -450,72 +450,38 @@ public class ScreenVestiario : CanvasScreen
                     disabledObjects.Add(obj);
                 }
             }
-            Debug.Log($"[ScreenVestiario] {disabledObjects.Count} objetos de UI desativados para foto limpa");
         }
 
-        // Força atualização do Canvas
+        // Força atualização do Canvas e aguarda renderização limpa
         Canvas.ForceUpdateCanvases();
-        
-        // Aguarda a renderização sem UI
         yield return new WaitForEndOfFrame();
 
-        // FOTO 1: Captura SEM UI (para mostrar no ScreenFinal)
-        Debug.Log("[ScreenVestiario] Capturando foto SEM UI...");
-        Texture2D srgbScreenshotWithoutUI = ScreenCapture.CaptureScreenshotAsTexture();
-        Texture2D cameraOnlyTexture = new Texture2D(srgbScreenshotWithoutUI.width, srgbScreenshotWithoutUI.height, TextureFormat.ARGB32, false, true);
-        Color32[] pixelsWithoutUI = srgbScreenshotWithoutUI.GetPixels32();
-        cameraOnlyTexture.SetPixels32(pixelsWithoutUI);
-        cameraOnlyTexture.Apply();
-        Destroy(srgbScreenshotWithoutUI);
+        // CAPTURA ÚNICA NO MOMENTO CRÍTICO (SEM UI - foto limpa da câmera)
+        Debug.Log("[ScreenVestiario] [SNAP!] Capturando foto limpa...");
+        Texture2D srgbScreenshotClean = ScreenCapture.CaptureScreenshotAsTexture();
 
-        if (ScreenshotHolder.CameraOnlyTexture != null) Destroy(ScreenshotHolder.CameraOnlyTexture);
-        ScreenshotHolder.CameraOnlyTexture = cameraOnlyTexture;
-        Debug.Log($"[ScreenVestiario] ✓ Foto SEM UI capturada: {cameraOnlyTexture.width}x{cameraOnlyTexture.height}");
-
-        // REATIVA os objetos de UI imediatamente
+        // REATIVA UI IMEDIATAMENTE - não espera processamento
         foreach (GameObject obj in disabledObjects)
         {
             if (obj != null) obj.SetActive(true);
         }
-        Canvas.ForceUpdateCanvases();
-        
-        // Aguarda a renderização COM UI
-        yield return new WaitForEndOfFrame();
 
-        // FOTO 2: Captura COM UI (para o PictureDataController fazer upload)
-        Debug.Log("[ScreenVestiario] Capturando foto COM UI para upload...");
-        Texture2D srgbScreenshotWithUI = ScreenCapture.CaptureScreenshotAsTexture();
-        Texture2D linearScreenshotWithUI = new Texture2D(srgbScreenshotWithUI.width, srgbScreenshotWithUI.height, TextureFormat.ARGB32, false, true);
-        Color32[] pixelsWithUI = srgbScreenshotWithUI.GetPixels32();
-        linearScreenshotWithUI.SetPixels32(pixelsWithUI);
-        linearScreenshotWithUI.Apply();
-        Destroy(srgbScreenshotWithUI);
+        // Processa a textura em formato correto (rápido)
+        Texture2D cameraOnlyTexture = new Texture2D(srgbScreenshotClean.width, srgbScreenshotClean.height, TextureFormat.ARGB32, false, true);
+        cameraOnlyTexture.SetPixels32(srgbScreenshotClean.GetPixels32());
+        cameraOnlyTexture.Apply();
+        Destroy(srgbScreenshotClean);
 
-        // Send to PictureDataController for upload (COM UI)
-        if (pictureDataController != null)
-        {
-            pictureDataController.SetCapturedTexture(linearScreenshotWithUI);
-            Debug.Log("[ScreenVestiario] ✓ Foto COM UI enviada para upload");
-        }
+        // Armazena para o ScreenFinal
+        if (ScreenshotHolder.CameraOnlyTexture != null) Destroy(ScreenshotHolder.CameraOnlyTexture);
+        ScreenshotHolder.CameraOnlyTexture = cameraOnlyTexture;
+        Debug.Log($"[ScreenVestiario] ✓ Foto limpa salva: {cameraOnlyTexture.width}x{cameraOnlyTexture.height}");
 
-        // Store the screenshot with UI for compatibility
-        if (ScreenshotHolder.ScreenshotTexture != null) Destroy(ScreenshotHolder.ScreenshotTexture);
-        ScreenshotHolder.ScreenshotTexture = linearScreenshotWithUI;
-
-        // Show flash effect
+        // Efeitos de feedback IMEDIATOS (não espera)
         StartCoroutine(ShowFlashEffect());
-
-        // Play capture audio
         PlayCaptureAudio();
 
-        // Mostra o freeze frame da câmera (SEM UI) no ScreenVestiario
-        if (freezeFrameImage != null && cameraOnlyTexture != null)
-        {
-            freezeFrameImage.texture = cameraOnlyTexture;
-            freezeFrameImage.gameObject.SetActive(true);
-            Debug.Log("[ScreenVestiario] Mostrando freeze frame da câmera (SEM UI)");
-        }
-
+        // Esconde countdown group
         if (countdownGroup)
         {
             countdownGroup.alpha = 0f;
@@ -524,8 +490,20 @@ public class ScreenVestiario : CanvasScreen
             countdownGroup.gameObject.SetActive(false);
         }
 
-        // Aguarda 1 segundo mostrando o freeze frame e vai para a próxima tela
-        yield return new WaitForSeconds(1f);
+        // Mostra freeze frame brevemente (opcional - pode comentar se travar)
+        if (freezeFrameImage != null && cameraOnlyTexture != null)
+        {
+            freezeFrameImage.texture = cameraOnlyTexture;
+            freezeFrameImage.gameObject.SetActive(true);
+        }
+
+        // Aguarda tempo mínimo para feedback visual
+        yield return new WaitForSeconds(0.3f);
+
+        // Inicia captura COM UI em background (não bloqueia)
+        StartCoroutine(CaptureWithUIInBackground());
+
+        // VAI PARA PRÓXIMA TELA IMEDIATAMENTE - não espera upload
         CallNextScreen();
     }
 
@@ -562,6 +540,37 @@ public class ScreenVestiario : CanvasScreen
         {
             StopCoroutine(countdownCoroutine);
             countdownCoroutine = null;
+        }
+    }
+
+    /// <summary>
+    /// Captura a foto COM UI em background (não bloqueia a transição de tela)
+    /// </summary>
+    private IEnumerator CaptureWithUIInBackground()
+    {
+        // Pequeno delay para garantir que a UI foi reativada
+        yield return new WaitForEndOfFrame();
+
+        Debug.Log("[ScreenVestiario] Capturando foto COM UI em background...");
+        Texture2D srgbScreenshotWithUI = ScreenCapture.CaptureScreenshotAsTexture();
+        Texture2D linearScreenshotWithUI = new Texture2D(srgbScreenshotWithUI.width, srgbScreenshotWithUI.height, TextureFormat.ARGB32, false, true);
+        linearScreenshotWithUI.SetPixels32(srgbScreenshotWithUI.GetPixels32());
+        linearScreenshotWithUI.Apply();
+        Destroy(srgbScreenshotWithUI);
+
+        // Store for compatibility
+        if (ScreenshotHolder.ScreenshotTexture != null) Destroy(ScreenshotHolder.ScreenshotTexture);
+        ScreenshotHolder.ScreenshotTexture = linearScreenshotWithUI;
+
+        // Send to PictureDataController for upload (em background)
+        if (pictureDataController != null)
+        {
+            pictureDataController.SetCapturedTexture(linearScreenshotWithUI);
+            Debug.Log("[ScreenVestiario] ✓ Foto COM UI enviada para upload (background)");
+        }
+        else
+        {
+            Debug.LogWarning("[ScreenVestiario] PictureDataController não configurado - upload cancelado");
         }
     }
 
