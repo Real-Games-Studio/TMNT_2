@@ -284,22 +284,6 @@ namespace Imagine.WebAR
             Debug.Log("║ Video AR: " + v_ar + " (" + (v_ar > 1 ? "LANDSCAPE" : "PORTRAIT") + ")");
             Debug.Log("║ Camera FOV: " + cam.fieldOfView);
 
-            // Detect if video and screen orientations are different
-            bool screenIsPortrait = ar < 1;
-            bool videoIsLandscape = v_ar > 1;
-            bool needsRotation = screenIsPortrait && videoIsLandscape;
-
-            if (needsRotation)
-            {
-                Debug.Log("║ 🔄 ROTATION NEEDED: Video is landscape but screen is portrait");
-                // Swap width and height for calculations
-                int temp = width;
-                width = height;
-                height = temp;
-                v_ar = (float)width / (float)height;
-                Debug.Log("║ Swapped video dimensions: " + width + " x " + height + " (AR: " + v_ar + ")");
-            }
-
             float heightScale = 1;
 
             if (v_ar > ar)
@@ -321,16 +305,7 @@ namespace Imagine.WebAR
 
             videoBackground.transform.localScale = new Vector3(widthScale, heightScale, 1);
             videoBackground.transform.localPosition = new Vector3(0, 0, videoDistance);
-
-            // Rotate 90 degrees if needed
-            if (needsRotation)
-            {
-                videoBackground.transform.localEulerAngles = new Vector3(0, 0, -90);
-            }
-            else
-            {
-                videoBackground.transform.localEulerAngles = Vector3.zero;
-            }
+            videoBackground.transform.localEulerAngles = Vector3.zero;
         }
 
         void SetVideoDims()
