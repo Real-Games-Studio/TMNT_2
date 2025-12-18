@@ -19,9 +19,10 @@ public class ScreenFinal : CanvasScreen
     [SerializeField] private bool useFullScreen = false; // Se true, captura tela toda; se false, usa a área específica
 
     [Header("Upload Settings")]
+    [SerializeField] private PictureDataControlelr pictureDataController;
     [SerializeField] private string projectCode = "bobsandy";
     [SerializeField] private string uploadUrl = "https://realgamesstudio.com.br/api/media/upload";
-    [SerializeField] private bool autoUploadOnShow = false; // Desabilitado - upload já feito no ScreenVestiario
+    [SerializeField] private bool autoUploadOnShow = true; // Upload da foto COM UI
 
     private float timer;
     private bool isScreenActive = false;
@@ -61,6 +62,20 @@ public class ScreenFinal : CanvasScreen
 
                 timer = 0f;
                 screenshotTaken = false;
+
+                // Upload da foto COM UI para o QR Code
+                if (autoUploadOnShow && pictureDataController != null && ScreenshotHolder.ScreenshotTexture != null)
+                {
+                    pictureDataController.SetCapturedTexture(ScreenshotHolder.ScreenshotTexture);
+                    Debug.Log("[ScreenFinal] ✓ Foto COM UI enviada para upload e geração de QR Code");
+                }
+                else
+                {
+                    if (pictureDataController == null)
+                        Debug.LogWarning("[ScreenFinal] PictureDataController não configurado - upload cancelado");
+                    if (ScreenshotHolder.ScreenshotTexture == null)
+                        Debug.LogWarning("[ScreenFinal] ScreenshotTexture não disponível - upload cancelado");
+                }
 
                 isScreenActive = true;
             }

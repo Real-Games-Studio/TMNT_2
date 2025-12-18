@@ -41,6 +41,8 @@ public class ScreenVestiario : CanvasScreen
     [Header("Capture Feedback")]
     [Tooltip("Optional RawImage that will momentarily show the captured photo to \"freeze\" the webcam feed.")]
     [SerializeField] private RawImage freezeFrameImage;
+    [Tooltip("How long to show the freeze frame (max 0.5 seconds recommended).")]
+    [SerializeField] private float freezeFrameDuration = 0.5f;
     [Tooltip("AudioSource used to play a shutter sound when the photo is taken.")]
     [SerializeField] private AudioSource captureAudioSource;
     [Tooltip("Optional clip to play through the AudioSource when the photo is captured.")]
@@ -50,10 +52,6 @@ public class ScreenVestiario : CanvasScreen
     [SerializeField] private CanvasGroup flashEffect;
     [Tooltip("Duration of the flash effect in seconds.")]
     [SerializeField] private float flashDuration = 0.3f;
-
-    [Header("Upload")]
-    [Tooltip("PictureDataControlelr to handle upload and QR code generation.")]
-    [SerializeField] private PictureDataControlelr pictureDataController;
 
     [Header("Camera Capture")]
     [Tooltip("Objetos de UI que serão DESATIVADOS durante a captura da câmera (wearables, countdown, etc). A câmera ficará visível.")]
@@ -509,13 +507,26 @@ public class ScreenVestiario : CanvasScreen
             freezeFrameImage.gameObject.SetActive(true);
         }
 
-        // AGUARDA 0.5 SEGUNDOS com frame congelado
-        yield return new WaitForSeconds(0.5f);
+        // AGUARDA com frame congelado (configurável no Inspector, máx 0.5s recomendado)
+        float clampedDuration = Mathf.Min(freezeFrameDuration, 0.5f); // Garante máximo de 0.5s
+        yield return new WaitForSeconds(clampedDuration);
+
+        Debug.Log("[ScreenVestiario] Capturando foto COM UI antes de trocar de tela...");
+
+        // CAPTURA COM UI AGORA (antes de trocar de tela)
+        yield return new WaitForEndOfFrame();
+        Texture2D srgbScreenshotWithUI = ScreenCapture.CaptureScreenshotAsTexture();
+        Texture2D linearScreenshotWithUI = new Texture2D(srgbScreenshotWithUI.width, srgbScreenshotWithUI.height, TextureFormat.ARGB32, false, true);
+        linearScreenshotWithUI.SetPixels32(srgbScreenshotWithUI.GetPixels32());
+        linearScreenshotWithUI.Apply();
+        Destroy(srgbScreenshotWithUI);
+
+        // Store for ScreenFinal to send to PictureDataController
+        if (ScreenshotHolder.ScreenshotTexture != null) Destroy(ScreenshotHolder.ScreenshotTexture);
+        ScreenshotHolder.ScreenshotTexture = linearScreenshotWithUI;
+        Debug.Log($"[ScreenVestiario] ✓ Foto COM UI salva: {linearScreenshotWithUI.width}x{linearScreenshotWithUI.height}");
 
         Debug.Log("[ScreenVestiario] Indo para próxima tela...");
-
-        // Inicia captura COM UI em background (não bloqueia transição)
-        StartCoroutine(CaptureWithUIInBackground());
 
         // VAI PARA PRÓXIMA TELA
         CallNextScreen();
@@ -557,36 +568,6 @@ public class ScreenVestiario : CanvasScreen
         }
     }
 
-    /// <summary>
-    /// Captura a foto COM UI em background (não bloqueia a transição de tela)
-    /// </summary>
-    private IEnumerator CaptureWithUIInBackground()
-    {
-        // Pequeno delay para garantir que a UI foi reativada
-        yield return new WaitForEndOfFrame();
-
-        Debug.Log("[ScreenVestiario] Capturando foto COM UI em background...");
-        Texture2D srgbScreenshotWithUI = ScreenCapture.CaptureScreenshotAsTexture();
-        Texture2D linearScreenshotWithUI = new Texture2D(srgbScreenshotWithUI.width, srgbScreenshotWithUI.height, TextureFormat.ARGB32, false, true);
-        linearScreenshotWithUI.SetPixels32(srgbScreenshotWithUI.GetPixels32());
-        linearScreenshotWithUI.Apply();
-        Destroy(srgbScreenshotWithUI);
-
-        // Store for compatibility
-        if (ScreenshotHolder.ScreenshotTexture != null) Destroy(ScreenshotHolder.ScreenshotTexture);
-        ScreenshotHolder.ScreenshotTexture = linearScreenshotWithUI;
-
-        // Send to PictureDataController for upload (em background)
-        if (pictureDataController != null)
-        {
-            pictureDataController.SetCapturedTexture(linearScreenshotWithUI);
-            Debug.Log("[ScreenVestiario] ✓ Foto COM UI enviada para upload (background)");
-        }
-        else
-        {
-            Debug.LogWarning("[ScreenVestiario] PictureDataController não configurado - upload cancelado");
-        }
-    }
 
     /// <summary>
     /// Captura apenas a textura da webcam (sem UI, overlays, etc.)
