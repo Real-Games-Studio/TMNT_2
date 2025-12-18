@@ -221,7 +221,13 @@ namespace Imagine.WebAR
             var width = int.Parse(vals[0]);
             var height = int.Parse(vals[1]);
 
-            Debug.Log("Got Video Texture Size - " + width + " x " + height);
+            Debug.Log("╔════════════════════════════════════════════════════════╗");
+            Debug.Log("║ 📹 CAMERA RESIZE DEBUG");
+            Debug.Log("╠════════════════════════════════════════════════════════╣");
+            Debug.Log("║ Video Texture Size: " + width + " x " + height);
+            Debug.Log("║ Aspect Ratio: " + (float)width / height);
+            Debug.Log("║ Orientation: " + (width > height ? "LANDSCAPE" : "PORTRAIT"));
+            Debug.Log("╚════════════════════════════════════════════════════════╝");
             OnResized?.Invoke(new Vector2(width, height));
 
             if (videoPlaneMode == VideoPlaneMode.NONE)
@@ -258,7 +264,9 @@ namespace Imagine.WebAR
 
         void CreateVideoPlane(int width, int height)
         {
-            Debug.Log("Init video plane");
+            Debug.Log("╔════════════════════════════════════════════════════════╗");
+            Debug.Log("║ 🎬 CREATE VIDEO PLANE DEBUG");
+            Debug.Log("╠════════════════════════════════════════════════════════╣");
 
             videoBackground = GameObject.CreatePrimitive(PrimitiveType.Quad);
             videoBackground.name = "VideoBackground";
@@ -270,21 +278,30 @@ namespace Imagine.WebAR
             var ar = (float)Screen.width / (float)Screen.height;
             var v_ar = (float)width / (float)height;
 
+            Debug.Log("║ Screen size: " + Screen.width + " x " + Screen.height);
+            Debug.Log("║ Screen AR: " + ar + " (" + (ar > 1 ? "LANDSCAPE" : "PORTRAIT") + ")");
+            Debug.Log("║ Video size: " + width + " x " + height);
+            Debug.Log("║ Video AR: " + v_ar + " (" + (v_ar > 1 ? "LANDSCAPE" : "PORTRAIT") + ")");
+            Debug.Log("║ Camera FOV: " + cam.fieldOfView);
+
             float heightScale = 1;
 
             if (v_ar > ar)
             {
-                Debug.Log("Bleed horizontally");
+                Debug.Log("║ Mode: Bleed horizontally");
                 heightScale = 2 * videoDistance * Mathf.Tan(cam.fieldOfView * Mathf.Deg2Rad / 2);
             }
             else
             {
-                Debug.Log("Bleed vertically");
+                Debug.Log("║ Mode: Bleed vertically");
                 var heightRatio = ar / v_ar;
                 heightScale = 2 * videoDistance * Mathf.Tan(cam.fieldOfView * Mathf.Deg2Rad / 2) * heightRatio;
             }
 
             var widthScale = heightScale * v_ar * (isFlipped ? -1 : 1);
+
+            Debug.Log("║ Plane scale: " + widthScale + " x " + heightScale);
+            Debug.Log("╚════════════════════════════════════════════════════════╝");
 
             videoBackground.transform.localScale = new Vector3(widthScale, heightScale, 1);
             videoBackground.transform.localPosition = new Vector3(0, 0, videoDistance);

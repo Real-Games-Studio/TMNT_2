@@ -282,6 +282,13 @@
                   await arCamera.startWebcam(video);
                   console.log("Webcam started successfully");
 
+                  // DEBUG: Log camera dimensions
+                  console.log("=== CAMERA DEBUG INFO ===");
+                  console.log("Video element dimensions:", video.videoWidth, "x", video.videoHeight);
+                  console.log("Video canvas dimensions:", document.querySelector("#video-canvas").width, "x", document.querySelector("#video-canvas").height);
+                  console.log("Aspect ratio:", video.videoWidth / video.videoHeight);
+                  console.log("========================");
+
                   window.unityInstance.SendMessage('ARCamera', 'OnStartWebcamSuccess');
 
                  
