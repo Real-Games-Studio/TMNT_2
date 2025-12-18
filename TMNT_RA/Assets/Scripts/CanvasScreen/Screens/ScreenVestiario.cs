@@ -159,6 +159,13 @@ public class ScreenVestiario : CanvasScreen
             countdownImage.gameObject.SetActive(false);
         }
 
+        // Reset wearable assignments to ensure fresh distribution
+        if (WearableManager.Instance != null)
+        {
+            WearableManager.Instance.ResetAllAssignments();
+            Debug.Log("[ScreenVestiario] Wearables resetados para nova sessão");
+        }
+
         // Reset timers and flags
         continuousTrackingTimer = 0f;
         isCountingDown = false;

@@ -26,6 +26,7 @@ public class PositionTracker : MonoBehaviour
     private float lastTrackingTime;
     private bool wasTrackingLastFrame;
     private int currentChildIndex = -1;
+    private bool hasAssignedWearable = false;
 
     private void Awake()
     {
@@ -107,6 +108,15 @@ public class PositionTracker : MonoBehaviour
     private void StopTracking()
     {
         DeactivateAllChildren();
+
+        // Libera o wearable quando para de rastrear
+        if (hasAssignedWearable && WearableManager.Instance != null)
+        {
+            WearableManager.Instance.ReleaseWearableIndex(this);
+            hasAssignedWearable = false;
+            currentChildIndex = -1;
+        }
+
         isTracking = false;
     }
 
@@ -140,30 +150,57 @@ public class PositionTracker : MonoBehaviour
 
         DeactivateAllChildren();
 
-        int randomIndex;
+        int wearableIndex = -1;
 
-        // Se há mais de um objeto, garante que NUNCA repete o último usado
-        if (objectsToDisable.Length > 1)
+        // Usa o WearableManager para garantir que não haja repetição entre trackers
+        if (WearableManager.Instance != null)
         {
-            // Sorteia até pegar um índice diferente do último
-            do
+            wearableIndex = WearableManager.Instance.AssignWearableIndex(this);
+            hasAssignedWearable = true;
+
+            if (wearableIndex == -1)
             {
-                randomIndex = Random.Range(0, objectsToDisable.Length);
+                Debug.LogWarning($"[PositionTracker] {name} não conseguiu obter um wearable único - todos estão em uso!");
+                return;
             }
-            while (randomIndex == currentChildIndex);
+
+            // Garante que o índice está dentro dos limites do array
+            if (wearableIndex >= objectsToDisable.Length)
+            {
+                Debug.LogError($"[PositionTracker] {name} recebeu índice {wearableIndex} mas só tem {objectsToDisable.Length} wearables!");
+                return;
+            }
+
+            currentChildIndex = wearableIndex;
         }
         else
         {
-            // Se só tem um objeto, usa ele
-            randomIndex = 0;
+            // Fallback: comportamento antigo se o WearableManager não existir
+            Debug.LogWarning("[PositionTracker] WearableManager não encontrado! Usando sistema antigo (pode repetir wearables)");
+
+            if (objectsToDisable.Length > 1)
+            {
+                // Sorteia até pegar um índice diferente do último
+                do
+                {
+                    wearableIndex = Random.Range(0, objectsToDisable.Length);
+                }
+                while (wearableIndex == currentChildIndex);
+            }
+            else
+            {
+                wearableIndex = 0;
+            }
+
+            currentChildIndex = wearableIndex;
         }
 
-        currentChildIndex = randomIndex;
         GameObject childToActivate = objectsToDisable[currentChildIndex];
 
         if (childToActivate != null)
         {
             childToActivate.SetActive(true);
+            Debug.Log($"[PositionTracker] {name} ativou wearable {currentChildIndex}: {childToActivate.name}");
         }
     }
 
