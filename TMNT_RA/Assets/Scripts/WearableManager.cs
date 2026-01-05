@@ -30,7 +30,7 @@ public class WearableManager : MonoBehaviour
 
     // Lista de índices disponíveis (0-3 para 4 wearables)
     private List<int> availableIndices = new List<int> { 0, 1, 2, 3 };
-
+    
     private void Awake()
     {
         if (_instance != null && _instance != this)
@@ -57,7 +57,7 @@ public class WearableManager : MonoBehaviour
         if (assignedWearables.ContainsKey(tracker))
         {
             int existingIndex = assignedWearables[tracker];
-
+            
             // Se quer mudar para um índice diferente
             if (currentIndex >= 0 && currentIndex != existingIndex)
             {
@@ -71,7 +71,7 @@ public class WearableManager : MonoBehaviour
                 return existingIndex;
             }
         }
-
+        
         // Se não há índices disponíveis, retorna -1
         if (availableIndices.Count == 0)
         {
