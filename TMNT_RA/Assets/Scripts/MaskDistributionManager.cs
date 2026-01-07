@@ -27,7 +27,7 @@ public class MaskDistributionManager : MonoBehaviour
 
     // Armazena qual máscara (índice) está sendo usada por qual PositionTracker
     private Dictionary<PositionTracker, int> assignedMasks = new Dictionary<PositionTracker, int>();
-    
+
     // Lista de índices disponíveis (0, 1, 2, 3 para as 4 tartarugas)
     private List<int> availableMaskIndices = new List<int>();
 
@@ -52,13 +52,13 @@ public class MaskDistributionManager : MonoBehaviour
     {
         assignedMasks.Clear();
         availableMaskIndices.Clear();
-        
+
         // Adiciona os 4 índices possíveis (0=SM_Mascara, 1=SM_Mascara(1), 2=SM_Mascara(2), 3=SM_Mascara(3))
         for (int i = 0; i < 4; i++)
         {
             availableMaskIndices.Add(i);
         }
-        
+
         Debug.Log($"[MaskDistribution] Todas as máscaras foram resetadas. {availableMaskIndices.Count} máscaras disponíveis.");
     }
 
@@ -92,13 +92,13 @@ public class MaskDistributionManager : MonoBehaviour
         // Escolhe um índice aleatório da lista de disponíveis
         int randomListIndex = Random.Range(0, availableMaskIndices.Count);
         int maskIndex = availableMaskIndices[randomListIndex];
-        
+
         // Remove da lista de disponíveis e atribui ao tracker
         availableMaskIndices.RemoveAt(randomListIndex);
         assignedMasks[tracker] = maskIndex;
-        
+
         Debug.Log($"[MaskDistribution] ✓ {tracker.name} recebeu máscara {maskIndex}. Restam {availableMaskIndices.Count} máscaras disponíveis.");
-        
+
         return maskIndex;
     }
 
@@ -113,12 +113,12 @@ public class MaskDistributionManager : MonoBehaviour
         {
             int maskIndex = assignedMasks[tracker];
             assignedMasks.Remove(tracker);
-            
+
             if (!availableMaskIndices.Contains(maskIndex))
             {
                 availableMaskIndices.Add(maskIndex);
             }
-            
+
             Debug.Log($"[MaskDistribution] Máscara {maskIndex} liberada por {tracker.name}. Agora {availableMaskIndices.Count} máscaras disponíveis.");
         }
     }
