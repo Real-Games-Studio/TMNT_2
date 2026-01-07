@@ -77,7 +77,11 @@ namespace Imagine.WebAR
         {
             cam = trackerCam.GetComponent<Camera>();
 
-            foreach (var fo in FindObjectsByType<FaceObject>(FindObjectsSortMode.None))
+            Debug.Log($"[FACETRACKER] Procurando FaceObjects na cena...");
+            var foundFaceObjects = FindObjectsByType<FaceObject>(FindObjectsSortMode.None);
+            Debug.Log($"[FACETRACKER] Encontrados {foundFaceObjects.Length} FaceObjects");
+
+            foreach (var fo in foundFaceObjects)
             {
                 if (faceObjects[fo.faceIndex] != null)
                 {
@@ -86,9 +90,15 @@ namespace Imagine.WebAR
                 }
                 faceObjects[fo.faceIndex] = fo;
                 fo.gameObject.SetActive(false);
+                Debug.Log($"[FACETRACKER] ✓ FaceObject registrado: {fo.name} (index={fo.faceIndex}, filhos={fo.transform.childCount})");
 
                 origFaceObjectScales.Add(fo, fo.transform.localScale);
             }
+
+            Debug.Log($"[FACETRACKER] Array faceObjects preenchido: [{(faceObjects[0] != null ? "✓" : "X")}][{(faceObjects[1] != null ? "✓" : "X")}][{(faceObjects[2] != null ? "✓" : "X")}][{(faceObjects[3] != null ? "✓" : "X")}]");
+
+            // Corrige os targets dos PositionTrackers para corresponderem aos FaceObjects corretos
+            FixPositionTrackerTargets();
 
             Start_Blendshapes();
             Start_FaceMesh();
@@ -147,9 +157,12 @@ namespace Imagine.WebAR
 
         void OnFaceFound(int faceIndex)
         {
+            Debug.Log($"[MULTIFACE] 🔍 OnFaceFound chamado para faceIndex={faceIndex}");
+
             var fo = faceObjects[faceIndex];
             if (fo == null)
             {
+                Debug.LogWarning($"[MULTIFACE] ⚠️ Invalid Face ID Found. FaceObject NULL para faceIndex={faceIndex}");
                 Debug.LogWarning("Invalid Face ID Found. Your scene's FaceObject count doesn't match FaceTrackerGlobalSettings maxFaces. This can cause detection problems.");
                 fo = faceObjects[0];
                 // return;
@@ -162,7 +175,10 @@ namespace Imagine.WebAR
                 hideFaceCoroutines[faceIndex] = null;
             }
 
+            bool wasActive = fo.gameObject.activeSelf;
             fo.gameObject.SetActive(true);
+
+            Debug.Log($"[MULTIFACE] ✓ FaceObject {faceIndex} ({fo.name}): wasActive={wasActive}, nowActive={fo.gameObject.activeSelf}, filhos={fo.transform.childCount}");
 
             if (faceObjects.Length != FaceTrackerGlobalSettings.Instance.maxFaces)
             {
@@ -224,17 +240,18 @@ namespace Imagine.WebAR
             string[] values = data.Split(new char[] { ',' });
 
             int faceIndex = int.Parse(values[0]);
-            // Debug.Log("OnUpdateFaceTransform " + faceIndex);
 
             var fo = faceObjects[faceIndex];
             if (fo == null)
             {
+                Debug.LogWarning($"[MULTIFACE] ⚠️ FaceObject é NULL para faceIndex={faceIndex}");
                 //This can happen if your faceobject count doesn't match FaceTrackerGlobalSettings.maxFaces
                 return;
             }
 
             if (!fo.gameObject.activeSelf)
             {
+                Debug.Log($"[MULTIFACE] ✓ Ativando FaceObject {faceIndex} ({fo.name}) com {fo.transform.childCount} filhos");
                 OnFaceFound(faceIndex);
             }
 
@@ -257,6 +274,9 @@ namespace Imagine.WebAR
             pos.x = float.Parse(values[1], System.Globalization.CultureInfo.InvariantCulture);
             pos.y = float.Parse(values[2], System.Globalization.CultureInfo.InvariantCulture);
             pos.z = float.Parse(values[3], System.Globalization.CultureInfo.InvariantCulture);
+
+            // DEBUG: Log position for each face
+            Debug.Log($"[MULTIFACE] Face {faceIndex}: pos=({pos.x:F2}, {pos.y:F2}, {pos.z:F2})");
 
             origScale = origFaceObjectScales[fo];
 
@@ -324,6 +344,58 @@ namespace Imagine.WebAR
             var dp = Vector3.right * dx + Vector3.up * dy + Vector3.forward * dz;
             trackerCam.transform.Translate(dp);
             trackerCam.transform.rotation = rot;
+        }
+
+        private void FixPositionTrackerTargets()
+        {
+            Debug.Log("[FACETRACKER] Verificando e corrigindo targets dos PositionTrackers...");
+            
+            var allTrackers = FindObjectsByType<PositionTracker>(FindObjectsSortMode.None);
+            Debug.Log($"[FACETRACKER] Encontrados {allTrackers.Length} PositionTrackers");
+
+            foreach (var tracker in allTrackers)
+            {
+                // Identifica o índice do tracker pelo nome
+                string trackerName = tracker.name.Replace("HeadTrackerObjectHolder", "").Trim();
+                int trackerIndex = 0;
+                
+                if (trackerName.StartsWith("(") && trackerName.EndsWith(")"))
+                {
+                    string numberStr = trackerName.Substring(1, trackerName.Length - 2);
+                    if (int.TryParse(numberStr, out int parsed))
+                    {
+                        trackerIndex = parsed;
+                    }
+                }
+
+                // Verifica se o FaceObject correto existe
+                if (faceObjects[trackerIndex] == null)
+                {
+                    Debug.LogWarning($"[FACETRACKER] ⚠️ FaceObject[{trackerIndex}] não existe para {tracker.name}");
+                    continue;
+                }
+
+                // Verifica se o target atual está correto
+                var currentTarget = tracker.Target;
+                var correctTarget = faceObjects[trackerIndex].transform;
+
+                if (currentTarget != correctTarget)
+                {
+                    Debug.LogWarning($"[FACETRACKER] ❌ {tracker.name} (índice {trackerIndex}) estava linkado ao {currentTarget?.name ?? "NULL"}. Corrigindo para {correctTarget.name}...");
+                    
+                    // Usa reflection para modificar o campo privado target
+                    var field = typeof(PositionTracker).GetField("target", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (field != null)
+                    {
+                        field.SetValue(tracker, correctTarget);
+                        Debug.Log($"[FACETRACKER] ✓ {tracker.name} agora está linkado corretamente ao {correctTarget.name}");
+                    }
+                }
+                else
+                {
+                    Debug.Log($"[FACETRACKER] ✓ {tracker.name} (índice {trackerIndex}) já está corretamente linkado ao {correctTarget.name}");
+                }
+            }
         }
 
     }

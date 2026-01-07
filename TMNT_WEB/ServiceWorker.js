@@ -1,4 +1,4 @@
-const cacheName = "YDreams-Mattel_PollyRA-0.0.1";
+const cacheName = "YDreams-TMNTRA-1.0";
 const contentToCache = [
     "Build/TMNT_WEB.loader.js",
     "Build/TMNT_WEB.framework.js",

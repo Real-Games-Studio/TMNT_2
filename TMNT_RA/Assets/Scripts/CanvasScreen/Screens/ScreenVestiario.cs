@@ -87,9 +87,9 @@ public class ScreenVestiario : CanvasScreen
                 // Face was just detected, randomize wearables
                 foreach (var tracker in positionTrackers)
                 {
-                    if (tracker != null)
+                    if (tracker != null && tracker.Target != null && tracker.Target.gameObject.activeInHierarchy)
                     {
-                        tracker.ActivateRandomChild();
+                        tracker.ActivateChildByFaceIndex();
                     }
                 }
             }
@@ -164,6 +164,13 @@ public class ScreenVestiario : CanvasScreen
         {
             WearableManager.Instance.ResetAllAssignments();
             Debug.Log("[ScreenVestiario] Wearables resetados para nova sessão");
+        }
+
+        // Reset mask distribution para nova sessão
+        if (MaskDistributionManager.Instance != null)
+        {
+            MaskDistributionManager.Instance.ResetAllMasks();
+            Debug.Log("[ScreenVestiario] Máscaras resetadas para nova sessão");
         }
 
         // Reset timers and flags

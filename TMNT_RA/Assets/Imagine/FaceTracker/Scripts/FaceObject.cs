@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Imagine.WebAR{
+namespace Imagine.WebAR
+{
 
     public class FaceObject : MonoBehaviour
     {
-        [Range(0,3)] public int faceIndex = 0;
+        [Range(0, 3)] public int faceIndex = 0;
 
         public bool useFaceMesh = false;
         public MeshFilter faceMesh;
@@ -17,7 +18,7 @@ namespace Imagine.WebAR{
         public Mesh deformedMesh;
         public Texture2D deformTexture;
         public Vector3 deformMinVals, deformMaxVals;
-        [Range(0,2)]public float deformStrength = 1;
+        [Range(0, 2)] public float deformStrength = 1;
         // [HideInInspector] public Vector4[] deformationOffsets;
         private Vector3[] canonicalFaceVerts;
 
@@ -30,7 +31,7 @@ namespace Imagine.WebAR{
 
 
         public bool compensateScaleOnMouthOpen = false;
-        [Range(0.5f, 1)]public float scaleOnMouthFullyOpen = 0.9f;
+        [Range(0.5f, 1)] public float scaleOnMouthFullyOpen = 0.9f;
         public List<Transform> scaleTransformsOnMouthOpen = new List<Transform>();
         public Dictionary<Transform, Vector3> origScales = new Dictionary<Transform, Vector3>();
         public Dictionary<string, BlendshapeMapElement> shapesDictionary = new Dictionary<string, BlendshapeMapElement>();
@@ -44,9 +45,11 @@ namespace Imagine.WebAR{
 
         public bool flipOnFrontCam = false;
 
-        public void InitCanonicalFaceVerts(){
+        public void InitCanonicalFaceVerts()
+        {
             canonicalFaceVerts = new Vector3[468];
-            for(var i = 0; i < faceMesh.mesh.vertexCount; i++){
+            for (var i = 0; i < faceMesh.mesh.vertexCount; i++)
+            {
                 canonicalFaceVerts[i] = faceMesh.mesh.vertices[i];
             }
         }
@@ -56,10 +59,12 @@ namespace Imagine.WebAR{
         //     InitDeformationVectors();
         // }
 
-        public void InitDeformationVectors(){
+        public void InitDeformationVectors()
+        {
             var deformationOffsets = new Vector3[468];
 
-            for(var i = 0; i < 468; i++){
+            for (var i = 0; i < 468; i++)
+            {
 #if UNITY_EDITOR
                 var v = faceMesh.sharedMesh.vertices[i];
 #else
@@ -68,7 +73,7 @@ namespace Imagine.WebAR{
                 deformationOffsets[i] = (deformedMesh.vertices[i] - v) * deformStrength;
 
                 Debug.Log(i + "->" + deformationOffsets[i]);
-                }
+            }
 
             // Shader.SetGlobalVectorArray("_DeformationOffsets", deformationOffsets);
             deformTexture = ConvertToTexture(deformationOffsets);
@@ -122,26 +127,31 @@ namespace Imagine.WebAR{
             return texture;
         }
 
-        void Awake(){
+        void Awake()
+        {
             InitCanonicalFaceVerts();
         }
 
 #if UNITY_EDITOR
-        void OnDrawGizmos(){
+        void OnDrawGizmos()
+        {
             Gizmos.color = FaceTracker.GetFaceObjectGizmoColor;
-            if( FaceTracker.GetFaceObjectGizmoType == FaceTracker.FaceObjectGizmoType.MESH_GIZMO || 
-                FaceTracker.GetFaceObjectGizmoType == FaceTracker.FaceObjectGizmoType.MESH_AND_WIRE_GIZMO){
+            if (FaceTracker.GetFaceObjectGizmoType == FaceTracker.FaceObjectGizmoType.MESH_GIZMO ||
+                FaceTracker.GetFaceObjectGizmoType == FaceTracker.FaceObjectGizmoType.MESH_AND_WIRE_GIZMO)
+            {
                 Gizmos.DrawMesh(FaceTracker.EditorSceneViewMesh, 0, transform.position, transform.rotation);
             }
-            if( FaceTracker.GetFaceObjectGizmoType == FaceTracker.FaceObjectGizmoType.WIRE_GIZMO || 
-                FaceTracker.GetFaceObjectGizmoType == FaceTracker.FaceObjectGizmoType.MESH_AND_WIRE_GIZMO){
-                    
+            if (FaceTracker.GetFaceObjectGizmoType == FaceTracker.FaceObjectGizmoType.WIRE_GIZMO ||
+                FaceTracker.GetFaceObjectGizmoType == FaceTracker.FaceObjectGizmoType.MESH_AND_WIRE_GIZMO)
+            {
+
                 Gizmos.DrawWireMesh(FaceTracker.EditorSceneViewMesh, 0, transform.position, transform.rotation);
             }
         }
 #endif
 
-        public void SetMakeupAlpha(float alpha){
+        public void SetMakeupAlpha(float alpha)
+        {
             var r = faceMesh.GetComponent<MeshRenderer>();
             var col = r.material.GetColor("_BlushColor");
             var newCol = new Color(col.r, col.g, col.b, alpha);

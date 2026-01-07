@@ -39,9 +39,9 @@ public class ScreenCTA : CanvasScreen
 
                         foreach (var tracker in positionTrackersToReset)
                         {
-                            if (tracker != null)
+                            if (tracker != null && tracker.Target != null && tracker.Target.gameObject.activeInHierarchy)
                             {
-                                tracker.ActivateRandomChild();
+                                tracker.ActivateChildByFaceIndex();
                             }
                         }
 

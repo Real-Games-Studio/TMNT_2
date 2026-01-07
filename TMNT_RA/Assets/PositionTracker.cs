@@ -5,6 +5,8 @@ public class PositionTracker : MonoBehaviour
     [SerializeField, Tooltip("Objeto a ser seguindo enquanto estiver ativo na hierarquia.")]
     private Transform target; // Objeto a ser movido, se ele estiver ativo na hierarchia, devemos seguir. se nao. voltar para a posicao inicial
 
+    public Transform Target => target;
+
     [SerializeField, Tooltip("Lista de objetos filhos onde apenas um deve ser ativado de forma aleatória durante o tracking.")]
     private GameObject[] objectsToDisable; // Este objeto tera sempre 3 objetos filhos, e so um deles deve estar ativo qndo o tracking for chamado. isso de forma randomica
 
@@ -26,12 +28,44 @@ public class PositionTracker : MonoBehaviour
     private float lastTrackingTime;
     private bool wasTrackingLastFrame;
     private int currentChildIndex = -1;
-    private bool hasAssignedWearable = false;
 
     private void Awake()
     {
         initialPosition = transform.position;
         initialRotation = transform.rotation;
+
+        Debug.Log($"[PositionTracker] {name} Awake: target={(target != null ? target.name : "NULL")}, objectsToDisable.Length={objectsToDisable?.Length ?? 0}");
+
+        // Validação: Verifica se o PositionTracker está associado ao FaceObject correto
+        if (target != null)
+        {
+            var faceObject = target.GetComponent<Imagine.WebAR.FaceObject>();
+            if (faceObject != null)
+            {
+                // Extrai o número do nome do PositionTracker (ex: "HeadTrackerObjectHolder" = 0, "HeadTrackerObjectHolder (1)" = 1)
+                string trackerName = name.Replace("HeadTrackerObjectHolder", "").Trim();
+                int trackerIndex = 0;
+                
+                if (trackerName.StartsWith("(") && trackerName.EndsWith(")"))
+                {
+                    string numberStr = trackerName.Substring(1, trackerName.Length - 2);
+                    if (int.TryParse(numberStr, out int parsed))
+                    {
+                        trackerIndex = parsed;
+                    }
+                }
+
+                if (trackerIndex != faceObject.faceIndex)
+                {
+                    Debug.LogError($"[PositionTracker] ❌ ERRO DE CONFIGURAÇÃO! {name} (índice {trackerIndex}) está associado ao {target.name} (faceIndex {faceObject.faceIndex}). Eles devem ter o MESMO índice!");
+                }
+                else
+                {
+                    Debug.Log($"[PositionTracker] ✓ {name} (índice {trackerIndex}) corretamente associado ao {target.name} (faceIndex {faceObject.faceIndex})");
+                }
+            }
+        }
+
         DeactivateAllChildren();
         lastTrackingTime = Time.time;
         wasTrackingLastFrame = false;
@@ -47,6 +81,16 @@ public class PositionTracker : MonoBehaviour
     private void Update()
     {
         bool shouldTrack = target != null && target.gameObject.activeInHierarchy;
+
+        // Log quando detecta mudança de estado do target
+        if (shouldTrack && !wasTrackingLastFrame)
+        {
+            Debug.Log($"[PositionTracker] {name} - Target ATIVADO: {target.name} (parent={target.parent?.name})");
+        }
+        else if (!shouldTrack && wasTrackingLastFrame)
+        {
+            Debug.Log($"[PositionTracker] {name} - Target DESATIVADO: {target?.name}");
+        }
 
         if (shouldTrack)
         {
@@ -85,38 +129,27 @@ public class PositionTracker : MonoBehaviour
     private void StartTracking()
     {
         isTracking = true;
-        // Ensure at least one wearable is visible when tracking resumes
+        Debug.Log($"[PositionTracker] {name} StartTracking chamado! target={target.name}");
+
+        // Ativa a máscara correspondente ao faceIndex do target
         if (objectsToDisable != null && objectsToDisable.Length > 0)
         {
-            bool anyActive = false;
-            foreach (GameObject obj in objectsToDisable)
-            {
-                if (obj != null && obj.activeSelf)
-                {
-                    anyActive = true;
-                    break;
-                }
-            }
-
-            if (!anyActive)
-            {
-                ActivateRandomChild();
-            }
+            Debug.Log($"[PositionTracker] {name} - Ativando máscara baseada no faceIndex...");
+            ActivateChildByFaceIndex();
+        }
+        else
+        {
+            Debug.LogWarning($"[PositionTracker] {name} - objectsToDisable está NULL ou vazio!");
         }
     }
 
     private void StopTracking()
     {
         DeactivateAllChildren();
-
-        // Libera o wearable quando para de rastrear
-        if (hasAssignedWearable && WearableManager.Instance != null)
-        {
-            WearableManager.Instance.ReleaseWearableIndex(this);
-            hasAssignedWearable = false;
-            currentChildIndex = -1;
-        }
-
+        
+        // Libera a máscara para que outros possam usar
+        MaskDistributionManager.Instance.ReleaseMask(this);
+        
         isTracking = false;
     }
 
@@ -141,67 +174,91 @@ public class PositionTracker : MonoBehaviour
         transform.SetPositionAndRotation(initialPosition, initialRotation);
     }
 
+    public void ActivateChildByFaceIndex()
+    {
+        if (objectsToDisable == null || objectsToDisable.Length == 0)
+        {
+            Debug.LogWarning($"[PositionTracker] {name} ActivateChildByFaceIndex: objectsToDisable NULL ou vazio!");
+            return;
+        }
+
+        // Usa o MaskDistributionManager para obter um índice de máscara disponível
+        int maskIndex = MaskDistributionManager.Instance.GetAvailableMaskIndex(this);
+        
+        if (maskIndex < 0 || maskIndex >= objectsToDisable.Length)
+        {
+            Debug.LogWarning($"[PositionTracker] {name} - Índice de máscara inválido: {maskIndex}. objectsToDisable.Length={objectsToDisable.Length}");
+            return;
+        }
+
+        Debug.Log($"[PositionTracker] {name} - MaskDistributionManager atribuiu máscara {maskIndex}");
+        ActivateChildAtIndex(maskIndex);
+    }
+
+    private void ActivateChildAtIndex(int index)
+    {
+        if (objectsToDisable == null || objectsToDisable.Length == 0) return;
+
+        Debug.Log($"[PositionTracker] {name} ActivateChildAtIndex: desativando todos e ativando índice {index}");
+        DeactivateAllChildren();
+
+        if (index < 0 || index >= objectsToDisable.Length)
+        {
+            Debug.LogWarning($"[PositionTracker] {name} - Índice {index} fora do range! Total: {objectsToDisable.Length}");
+            return;
+        }
+
+        GameObject childToActivate = objectsToDisable[index];
+        if (childToActivate == null)
+        {
+            Debug.LogWarning($"[PositionTracker] {name} - Máscara no índice {index} é NULL!");
+            return;
+        }
+
+        currentChildIndex = index;
+        childToActivate.SetActive(true);
+        Debug.Log($"[PositionTracker] ✓ {name} ATIVOU máscara: {childToActivate.name} (índice {index})");
+    }
+
     public void ActivateRandomChild()
     {
         if (objectsToDisable == null || objectsToDisable.Length == 0)
         {
+            Debug.LogWarning($"[PositionTracker] {name} ActivateRandomChild: objectsToDisable NULL ou vazio!");
             return;
         }
 
+        Debug.Log($"[PositionTracker] {name} ActivateRandomChild: desativando todos e ativando 1 de {objectsToDisable.Length} máscaras");
         DeactivateAllChildren();
 
-        int wearableIndex = -1;
-
-        // Usa o WearableManager para garantir que não haja repetição entre trackers
-        if (WearableManager.Instance != null)
+        int totalObjects = objectsToDisable.Length;
+        for (int offset = 1; offset <= totalObjects; offset++)
         {
-            wearableIndex = WearableManager.Instance.AssignWearableIndex(this);
-            hasAssignedWearable = true;
+            int nextIndex = (currentChildIndex + offset) % totalObjects;
+            GameObject candidate = objectsToDisable[nextIndex];
 
-            if (wearableIndex == -1)
+            if (candidate == null)
             {
-                Debug.LogWarning($"[PositionTracker] {name} não conseguiu obter um wearable único - todos estão em uso!");
-                return;
+                Debug.LogWarning($"[PositionTracker] {name} - Máscara no índice {nextIndex} é NULL!");
+                continue;
             }
 
-            // Garante que o índice está dentro dos limites do array
-            if (wearableIndex >= objectsToDisable.Length)
-            {
-                Debug.LogError($"[PositionTracker] {name} recebeu índice {wearableIndex} mas só tem {objectsToDisable.Length} wearables!");
-                return;
-            }
+            currentChildIndex = nextIndex;
+            candidate.SetActive(true);
 
-            currentChildIndex = wearableIndex;
-        }
-        else
-        {
-            // Fallback: comportamento antigo se o WearableManager não existir
-            Debug.LogWarning("[PositionTracker] WearableManager não encontrado! Usando sistema antigo (pode repetir wearables)");
+            Debug.Log($"[PositionTracker] ✓ {name} ATIVOU máscara: {candidate.name} (índice {nextIndex})");
 
-            if (objectsToDisable.Length > 1)
-            {
-                // Sorteia até pegar um índice diferente do último
-                do
-                {
-                    wearableIndex = Random.Range(0, objectsToDisable.Length);
-                }
-                while (wearableIndex == currentChildIndex);
-            }
-            else
-            {
-                wearableIndex = 0;
-            }
+            // Notifica o PropSpawnAnimator se existir
+            // PropSpawnAnimator animator = candidate.GetComponent<PropSpawnAnimator>();
+            // if (animator != null)
+            // {
+            //     animator.StartSpawnAnimation();
+            // }
 
-            currentChildIndex = wearableIndex;
+            return;
         }
 
-        GameObject childToActivate = objectsToDisable[currentChildIndex];
-
-        if (childToActivate != null)
-        {
-            childToActivate.SetActive(true);
-            Debug.Log($"[PositionTracker] {name} ativou wearable {currentChildIndex}: {childToActivate.name}");
-        }
+        Debug.LogError($"[PositionTracker] {name} - FALHOU ao ativar qualquer máscara! Todas são NULL?");
     }
 
     /// <summary>
