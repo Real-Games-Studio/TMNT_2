@@ -45,7 +45,7 @@ public class PositionTracker : MonoBehaviour
                 // Extrai o número do nome do PositionTracker (ex: "HeadTrackerObjectHolder" = 0, "HeadTrackerObjectHolder (1)" = 1)
                 string trackerName = name.Replace("HeadTrackerObjectHolder", "").Trim();
                 int trackerIndex = 0;
-                
+
                 if (trackerName.StartsWith("(") && trackerName.EndsWith(")"))
                 {
                     string numberStr = trackerName.Substring(1, trackerName.Length - 2);
@@ -146,10 +146,10 @@ public class PositionTracker : MonoBehaviour
     private void StopTracking()
     {
         DeactivateAllChildren();
-        
+
         // Libera a máscara para que outros possam usar
         MaskDistributionManager.Instance.ReleaseMask(this);
-        
+
         isTracking = false;
     }
 
@@ -184,7 +184,7 @@ public class PositionTracker : MonoBehaviour
 
         // Usa o MaskDistributionManager para obter um índice de máscara disponível
         int maskIndex = MaskDistributionManager.Instance.GetAvailableMaskIndex(this);
-        
+
         if (maskIndex < 0 || maskIndex >= objectsToDisable.Length)
         {
             Debug.LogWarning($"[PositionTracker] {name} - Índice de máscara inválido: {maskIndex}. objectsToDisable.Length={objectsToDisable.Length}");

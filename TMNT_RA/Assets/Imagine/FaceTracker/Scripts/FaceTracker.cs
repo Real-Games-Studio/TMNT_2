@@ -349,7 +349,7 @@ namespace Imagine.WebAR
         private void FixPositionTrackerTargets()
         {
             Debug.Log("[FACETRACKER] Verificando e corrigindo targets dos PositionTrackers...");
-            
+
             var allTrackers = FindObjectsByType<PositionTracker>(FindObjectsSortMode.None);
             Debug.Log($"[FACETRACKER] Encontrados {allTrackers.Length} PositionTrackers");
 
@@ -358,7 +358,7 @@ namespace Imagine.WebAR
                 // Identifica o índice do tracker pelo nome
                 string trackerName = tracker.name.Replace("HeadTrackerObjectHolder", "").Trim();
                 int trackerIndex = 0;
-                
+
                 if (trackerName.StartsWith("(") && trackerName.EndsWith(")"))
                 {
                     string numberStr = trackerName.Substring(1, trackerName.Length - 2);
@@ -382,7 +382,7 @@ namespace Imagine.WebAR
                 if (currentTarget != correctTarget)
                 {
                     Debug.LogWarning($"[FACETRACKER] ❌ {tracker.name} (índice {trackerIndex}) estava linkado ao {currentTarget?.name ?? "NULL"}. Corrigindo para {correctTarget.name}...");
-                    
+
                     // Usa reflection para modificar o campo privado target
                     var field = typeof(PositionTracker).GetField("target", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (field != null)
