@@ -373,7 +373,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 8b52af46d529bbf4fbecb579f9a0d800, type: 3}
       propertyPath: m_LocalScale.x
-      value: 5.189598
+      value: 5.1895976
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8b52af46d529bbf4fbecb579f9a0d800, type: 3}
       propertyPath: m_LocalScale.y
@@ -381,7 +381,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8b52af46d529bbf4fbecb579f9a0d800, type: 3}
       propertyPath: m_LocalScale.z
-      value: 5.189598
+      value: 5.1895976
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8b52af46d529bbf4fbecb579f9a0d800, type: 3}
       propertyPath: m_LocalPosition.x
@@ -427,6 +427,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_Mascara
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8b52af46d529bbf4fbecb579f9a0d800, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8417361359673230750, guid: 8b52af46d529bbf4fbecb579f9a0d800, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -470,13 +474,13 @@ PrefabInstance:
       addedObject: {fileID: 6931441051715592664}
     - targetCorrespondingSourceObject: {fileID: 4819001077394492298, guid: 8b52af46d529bbf4fbecb579f9a0d800, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 701051512140209343}
+      addedObject: {fileID: 7619356765666308744}
     - targetCorrespondingSourceObject: {fileID: -6522695966643703301, guid: 8b52af46d529bbf4fbecb579f9a0d800, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6943488679061946721}
     - targetCorrespondingSourceObject: {fileID: -6522695966643703301, guid: 8b52af46d529bbf4fbecb579f9a0d800, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2838493096876927918}
+      addedObject: {fileID: 8631998320559392614}
     - targetCorrespondingSourceObject: {fileID: 2480909740878747892, guid: 8b52af46d529bbf4fbecb579f9a0d800, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4572433660539084051}
@@ -598,42 +602,19 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!59 &2838493096876927918
-HingeJoint:
+--- !u!138 &8631998320559392614
+FixedJoint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2196920947333146383}
-  serializedVersion: 3
+  serializedVersion: 1
   m_ConnectedBody: {fileID: 6931441051715592664}
   m_ConnectedArticulationBody: {fileID: 0}
-  m_Anchor: {x: 0, y: 0, z: 0}
-  m_Axis: {x: 1, y: 0, z: 0}
-  m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: 0, y: 0, z: 0}
-  m_UseSpring: 0
-  m_Spring:
-    spring: 0
-    damper: 0
-    targetPosition: 0
-  m_UseMotor: 1
-  m_Motor:
-    targetVelocity: 0
-    force: 0
-    freeSpin: 0
-  m_UseLimits: 1
-  m_ExtendedLimits: 0
-  m_UseAcceleration: 0
-  m_Limits:
-    min: -137.7
-    max: -50.8
-    bounciness: 0
-    bounceMinVelocity: 0.2
-    contactDistance: 0
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
-  m_EnableCollision: 1
+  m_EnableCollision: 0
   m_EnablePreprocessing: 1
   m_MassScale: 1
   m_ConnectedMassScale: 1
@@ -1089,19 +1070,42 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!138 &701051512140209343
-FixedJoint:
+--- !u!59 &7619356765666308744
+HingeJoint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8784054018917719422}
-  serializedVersion: 1
+  serializedVersion: 3
   m_ConnectedBody: {fileID: 6514010909603759689}
   m_ConnectedArticulationBody: {fileID: 0}
+  m_Anchor: {x: 0, y: 0, z: 0}
+  m_Axis: {x: 1, y: 0, z: 0}
+  m_AutoConfigureConnectedAnchor: 1
+  m_ConnectedAnchor: {x: 0, y: 0, z: 0}
+  m_UseSpring: 0
+  m_Spring:
+    spring: 0
+    damper: 0
+    targetPosition: 0
+  m_UseMotor: 1
+  m_Motor:
+    targetVelocity: 0
+    force: 0
+    freeSpin: 0
+  m_UseLimits: 1
+  m_ExtendedLimits: 0
+  m_UseAcceleration: 0
+  m_Limits:
+    min: -137.7
+    max: -50.8
+    bounciness: 0
+    bounceMinVelocity: 0.2
+    contactDistance: 0
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
-  m_EnableCollision: 0
+  m_EnableCollision: 1
   m_EnablePreprocessing: 1
   m_MassScale: 1
   m_ConnectedMassScale: 1
