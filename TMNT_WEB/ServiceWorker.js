@@ -1,4 +1,4 @@
-const cacheName = "YDreams-TMNTRA-1.0";
+const cacheName = "YDreams-TMNTRA-1.9";
 const contentToCache = [
     "Build/TMNT_WEB.loader.js",
     "Build/TMNT_WEB.framework.js",
